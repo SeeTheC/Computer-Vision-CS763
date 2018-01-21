@@ -25,9 +25,12 @@ impixelinfo();
 toc;
 %%
 
-reverseBarrelDistortion(img);
-
-
-
-
+[ outImg,xMap,yMap,value ]=reverseBarrelDistortion(img);
+%%
+figure('name','out');
+imshow(outImg,colormap(jet)),daspect([1,1,1]);
+o1 = get(gca, 'Position');
+colorbar(),set(gca, 'Position', o1);
+axis tight,axis on;
+impixelinfo();
 
