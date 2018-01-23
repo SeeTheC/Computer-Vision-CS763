@@ -1,4 +1,4 @@
-function [ outImg,xMap,yMap,value, xV,yV,vV ] = reverseBarrelDistortion(img)
+function [ outImg,xMap,yMap,value] = reverseBarrelDistortion(img)
 %   Radial Distortion:  xd = xu(1 + q1.r + q2.r^2 )
 %   q1 and q2 are given. q1 = 1 and q2 = 0.5 and r = ||xu|| (L2-Norm)    
     
@@ -9,32 +9,30 @@ function [ outImg,xMap,yMap,value, xV,yV,vV ] = reverseBarrelDistortion(img)
     %[x,y]=inverseNormalizeCooridate(nX,nY,dim);
     %xc=inverseMapping([3.412;3.412;1]);
     %xc=inverseMapping([nX;nY;1]);
+    
     xMap=zeros(row,col); 
     yMap=zeros(row,col);   
-    value=zeros(row,col); 
-    
-    xV=zeros(1,row*col);
-    yV=zeros(1,row*col);
-    vV=zeros(1,row*col);
-    
-    
+    value=zeros(row,col);        
     outImg=zeros(row,col);
+    %[xMesh,yMesh]=meshgrid(1:col,1:row);
     for r=1:row
         for c=1:col
-            [nx,ny]=normalizeCooridate1(r,c,dim);
+            [nx,ny]=normalizeCooridate(r,c,dim);
             fprintf('**Processing (%d,%d) -> (%f,%f):\n',r,c,nx,ny);            
-            predictX=inverseMapping([nx;ny;1]);
+            [predictX]=inverseMapping([nx;ny;1]);
             px=predictX(1);py=predictX(2);
-            [unx,uny]=inverseNormalizeCooridate1(px,py,dim);
-            fprintf('=Mapping (%f,%f) -> (%f,%f):\n',px,py,unx,uny);
+            [unx,uny]=inverseNormalizeCooridate(px,py,dim);
+            fprintf('\n=Mapping (%f,%f) -> (%f,%f)\n',px,py,unx,uny);
             xMap(r,c)=unx;yMap(r,c)=uny;value(r,c)=img(r,c); 
-            xV(c*r)=unx;yV(c*r)=py;vV(c*r)=img(r,c);
-            outImg(round(unx),round(uny))=img(r,c);
+            %outImg(r,c)= interp2(img,unx,uny);
+            %outImg(r,c)= img(round(unx),round(uny));
+            outImg(round(unx),round(uny))= img(r,c);
         end
-    end
+   end
+ 
 end
 
-function newX = inverseMapping(dX)
+function [newX] = inverseMapping(dX)
     tillConverge=1;
     xi=dX;       
     thershold=0;
@@ -63,20 +61,22 @@ function newX = inverseMapping(dX)
         predX=dx./delta;
         
         %finding error
-        rPred=norm(predX,2);
-        deltaPred=(1+(q1*rPred)+(q2*rPred^2));        
-        errorDiff=(predX.*deltaPred)-dx;
+        
+         %rPred=norm(predX,2);
+         %deltaPred=(1+(q1*rPred)+(q2*rPred^2));        
+         %errorDiff=(predX.*deltaPred)-dx;
         %errorDiff=H(predX)*[predX;1]-[dx;1];
+        errorDiff=predX-ai;
         mError=norm(errorDiff,2);
         %disp(mError);
-        if mError<=0.001
+        if mError<=0.000001
         %if sum(predX-ai)==0
             tillConverge=0;
         end
         ai=predX;
         i=i+1;
     end
-    newX=predX;
+    newX=predX;   
     fprintf('#of iteration:%d',i);
     
 end

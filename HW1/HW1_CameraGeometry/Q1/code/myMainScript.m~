@@ -31,12 +31,14 @@ impixelinfo;
 title('\fontsize{10}{\color{red}Point Marked image}');
 axis tight,axis on;
 
-%% 1) Normalization
+%%
 [newpts2D, T2]=normalize2d(points2D);
 [newpts3D, T3]=normalize3d(points3D);
 
 %%
 
+
+%% %%%%%%%
 % 2) Creating M matrix
 
 M=zeros(12,12);
@@ -57,10 +59,10 @@ end
 %% 3) Finding projection ~P
 [U,S,V]=svd(M);
 p=reshape(V(:,12),[3 4]);
-P=(inv(T2))*p*T3;
+p=(inv(T2))*p*T3;
 
 %% 4) Finding Xo
-HInfi=P(:,1:3); h=P(:,4);
+HInfi=p(:,1:3); h=p(:,4);
 HInfiInv=inv(HInfi);
 %k=HInfi*HInfiInv;
 Xo=-HInfiInv*h;
@@ -69,12 +71,13 @@ Xo=-HInfiInv*h;
 %k=Q*Q';
 k=-inv(R)*Q'*Xo;
 
-%% 6) Test
-points2DEstimated=(P*points3D')';
+%% 
+points2DEstimated=(p*points3D')';
 indices = find(abs(points2DEstimated(:,3)) > eps);
 points2DEstimated(indices,1) = points2DEstimated(indices,1)./points2DEstimated(indices,3);
 points2DEstimated(indices,2) = points2DEstimated(indices,2)./points2DEstimated(indices,3);
 points2DEstimated(indices,3) = 1;
+
 RMSE=points2D-points2DEstimated;
 
 toc;
