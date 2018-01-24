@@ -1,4 +1,4 @@
-function [newpts, T] = normalize2d(pts)
+function [newpts, T,c] = normalize2d(pts)
 
     indices = find(abs(pts(:,3)) > eps);
     
@@ -7,8 +7,10 @@ function [newpts, T] = normalize2d(pts)
     pts(indices,2) = pts(indices,2)./pts(indices,3);
     pts(indices,3) = 1;
     
-    c = mean(pts);            % Centroid of points
-    ptsWithc0(indices,1) = pts(indices,1)-c(1); % Shift origin to centroid.
+     % Centroid of points
+    c = mean(pts);           
+    % Shift origin to centroid.
+    ptsWithc0(indices,1) = pts(indices,1)-c(1);
     ptsWithc0(indices,2) = pts(indices,2)-c(2);
     
     dist = sqrt(ptsWithc0(indices,1).^2 + ptsWithc0(indices,2).^2);
