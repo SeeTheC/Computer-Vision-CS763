@@ -5,7 +5,6 @@
 file='../data/camR.jpg';
 img=imread(file); 
 dim=size(img);
-format shortG
 
 %% Points
 tic;
@@ -118,18 +117,11 @@ fprintf('**Intrinsic Param  Xo:\n');
 disp(Xo');
 %% 5) Finding Rotation and Caliberation
 [Rinv,Kinv] = qr(HInfiInv);
-R=Rinv';
+%k=Q*Q';
+k=-inv(Kinv)*Q'*Xo;
 
-K=inv(Kinv);
-K=K/K(3,3);
-
-%format long g
-%format compact
-fprintf('**Intrinsic K:\n');
-disp(K);
-
-fprintf('**Rotation R:\n');
-disp(R);
+fprintf('**Intrinsic Param  R:\n');
+disp(Rinv);
 
 %% 6) Finding the projection of 3d using "P3x4" matrix
 %  For 14 points RMSE: 1.181891
