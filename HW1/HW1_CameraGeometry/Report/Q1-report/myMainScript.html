@@ -1,0 +1,439 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Assignment1-1</title><meta name="generator" content="MATLAB 8.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-01-26"><meta name="DC.source" content="myMainScript.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Assignment1-1</h1><!--introduction--><p>Rollno: 163059009, 16305R011, 16305R001</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Init</a></li><li><a href="#2">0) Data Points</a></li><li><a href="#3">1) Normalization</a></li><li><a href="#4">2D data point Marking</a></li><li><a href="#5">2) Creating M matrix</a></li><li><a href="#6">3) Finding projection ~P</a></li><li><a href="#7">4) Finding Xo</a></li><li><a href="#8">5) Finding Rotation and Caliberation</a></li><li><a href="#9">6) Finding the projection of 3d using "P3x4" matrix</a></li><li><a href="#10">6.1) Plotting projected point and actual points</a></li></ul></div><h2>Init<a name="1"></a></h2><pre class="codeinput">file=<span class="string">'../data/camR.jpg'</span>;
+img=imread(file);
+dim=size(img);
+format <span class="string">shortG</span>
+</pre><h2>0) Data Points<a name="2"></a></h2><p>We have take 14 datapoints for our camera caliberation.</p><pre class="codeinput">tic;
+<span class="comment">%datatset : 14 points</span>
+points3D_2=[1,0,1,1 ; <span class="comment">%1</span>
+            2,0,2,1 ; <span class="comment">%2</span>
+            1,0,3,1 ; <span class="comment">%3</span>
+            0,1,1,1 ; <span class="comment">%4</span>
+            0,2,2,1 ; <span class="comment">%5</span>
+            0,1,3,1 ; <span class="comment">%6</span>
+            2,0,1,1 ; <span class="comment">%7</span>
+            0,2,1,1 ; <span class="comment">%8</span>
+            4,0,2,1 ; <span class="comment">%9</span>
+            0,4,2,1 ; <span class="comment">%10</span>
+            3,0,3,1 ; <span class="comment">%11</span>
+            0,3,3,1 ; <span class="comment">%12</span>
+            0,0,4,1 ; <span class="comment">%13</span>
+            0,0,0,1 ; <span class="comment">%14</span>
+            ];
+
+points2D_2=[737,898,1 ; <span class="comment">%1</span>
+            640,811,1 ; <span class="comment">%2</span>
+            541,898,1 ; <span class="comment">%3</span>
+            742,1034,1 ; <span class="comment">%4</span>
+            653,1105,1 ; <span class="comment">%5</span>
+            546,1041,1 ; <span class="comment">%6</span>
+            741,810,1  ; <span class="comment">%7</span>
+            756,1101,1 ; <span class="comment">%8</span>
+            644,625,1  ; <span class="comment">%9</span>
+            673,1253,1 ; <span class="comment">%10</span>
+            537,724,1  ; <span class="comment">%11</span>
+            555,1179,1 ; <span class="comment">%12</span>
+            447, 981,1 ; <span class="comment">%13</span>
+            825,973, 1 ; <span class="comment">% 14</span>
+            ];
+
+points3D=points3D_2;
+points2D=points2D_2;
+noOfPoints=size(points2D,1);
+</pre><h2>1) Normalization<a name="3"></a></h2><p>Here we are doing the normalization of 2D and 3D point. Normalization is such that distance of 2d and 3d from their respective origin is sqrt(2) and sqrt(3) respectively.</p><p><b>Why Normalization is good?</b></p><p>Normalization help in bringing all points in one unit. Say measure unit in 3d world is cm/feet/m/km and in 2d image its pixels. So we cannot compare cm/m/km etc with pixels. Normilization helps in bringing every datapoint to same unit of measure. After calcuations are done, we can scale it back to their respective unit.</p><pre class="codeinput">[newpts2D, T2,c2d]=normalize2d(points2D);
+[newpts3D, T3,c3d]=normalize3d(points3D);
+</pre><h2>2D data point Marking<a name="4"></a></h2><p>Showing the datapoints on image which are under observation. We have taken measurements for 14 datapoints.</p><pre class="codeinput">img1=img;
+<span class="keyword">for</span> i=1:noOfPoints
+    img1 = insertMarker(img1,[points2D(i,2),points2D(i,1)],<span class="string">'x'</span>,<span class="string">'color'</span>,<span class="string">'red'</span>,<span class="string">'size'</span>,15);
+    img1= insertText(img1,[points2D(i,2)+3,points2D(i,1)+3], num2str(i), <span class="string">'FontSize'</span>,18,<span class="string">'BoxColor'</span>, <span class="string">'magenta'</span>);
+<span class="keyword">end</span>
+
+<span class="comment">% Centroid</span>
+img1 = insertMarker(img1,[c2d(2),c2d(1)],<span class="string">'x'</span>,<span class="string">'color'</span>,<span class="string">'green'</span>,<span class="string">'size'</span>,15);
+img1= insertText(img1,[c2d(2)+5,c2d(1)+5], <span class="string">'centroid'</span>, <span class="string">'FontSize'</span>,18,<span class="string">'BoxColor'</span>, <span class="string">'magenta'</span>);
+
+<span class="comment">% Adding Axis-label</span>
+img1=insertText(img1,[993+5,69], <span class="string">'z-axis'</span>, <span class="string">'FontSize'</span>,18,<span class="string">'BoxColor'</span>, <span class="string">'red'</span>);
+img1=insertText(img1,[36,913 + 5], <span class="string">'x-axis'</span>, <span class="string">'FontSize'</span>,18,<span class="string">'BoxColor'</span>, <span class="string">'red'</span>);
+img1=insertText(img1,[1570,989 + 5], <span class="string">'y-axis'</span>, <span class="string">'FontSize'</span>,18,<span class="string">'BoxColor'</span>, <span class="string">'red'</span>);
+
+<span class="comment">% Showing image</span>
+figure(<span class="string">'name'</span>,<span class="string">'Original:Point Marked image'</span>);
+imshow(img1);
+impixelinfo;
+title(<span class="string">'\fontsize{10}{\color{red}Original: Point Marked image}'</span>);
+axis <span class="string">tight</span>,axis <span class="string">on</span>;
+
+<span class="comment">% Drawing 3d axis</span>
+line([973,993], [825,69], <span class="string">'Color'</span>, <span class="string">'red'</span>, <span class="string">'LineWidth'</span>, 3);
+line([973,36], [825,913], <span class="string">'Color'</span>, <span class="string">'red'</span>, <span class="string">'LineWidth'</span>, 3);
+line([973,1570], [825,989], <span class="string">'Color'</span>, <span class="string">'red'</span>, <span class="string">'LineWidth'</span>, 3);
+</pre><pre class="codeoutput">Warning: Image is too big to fit on screen; displaying at 67% 
+</pre><img vspace="5" hspace="5" src="myMainScript_01.png" alt=""> <h2>2) Creating M matrix<a name="5"></a></h2><p>Creating the M matrix of dimension 2Ix12 = 28x12 as I is 14</p><p><img vspace="5" hspace="5" src="Mequation.png" alt=""> </p><pre class="codeinput">M=zeros(2*noOfPoints,12);
+
+<span class="keyword">for</span> i=1:noOfPoints
+    M(2*(i-1)+1,1:3)=-1.*newpts3D(i,1:3);
+    M(2*(i-1)+1,4:8)=[-1,0,0,0,0];
+    M(2*(i-1)+1,9:11)=newpts2D(i,1).*newpts3D(i,1:3);
+    M(2*(i-1)+1,12)=newpts2D(i,1);
+
+    M(2*i,1:4)=[0,0,0,0];
+    M(2*i,5:7)=-1.*newpts3D(i,1:3);
+    M(2*i,8)=-1;
+    M(2*i,9:11)=newpts2D(i,2).*newpts3D(i,1:3);
+    M(2*i,12)=newpts2D(i,2);
+<span class="keyword">end</span>
+</pre><h2>3) Finding projection ~P<a name="6"></a></h2><pre class="codeinput">[U,S,V]=svd(M);
+psol=V(:,12);
+p=reshape(psol,[4,3])';
+P=(inv(T2))*p*T3;
+P=P./P(3,4);
+
+fprintf(<span class="string">'**Projection Matrix P:\n'</span>);
+disp(P);
+</pre><pre class="codeoutput">**Projection Matrix P:
+      -17.968      -16.696      -96.348        825.2
+       -106.4        21.23      -1.6118       972.86
+    -0.030451    -0.037805   -0.0037611            1
+
+</pre><h2>4) Finding Xo<a name="7"></a></h2><pre class="codeinput">HInfi=P(:,1:3); h=P(:,4);
+HInfiInv=inv(HInfi);
+<span class="comment">%k=HInfi*HInfiInv;</span>
+Xo=-HInfiInv*h;
+
+fprintf(<span class="string">'**Intrinsic Param  Xo:\n'</span>);
+disp(Xo');
+</pre><pre class="codeoutput">**Intrinsic Param  Xo:
+        12.32       16.183       3.4628
+
+</pre><h2>5) Finding Rotation and Caliberation<a name="8"></a></h2><pre class="codeinput">[Rinv,Kinv] = qr(HInfiInv);
+R=Rinv';
+
+K=inv(Kinv);
+K=K/K(3,3);
+
+fprintf(<span class="string">'**Intrinsic K:\n'</span>);
+disp(K);
+
+fprintf(<span class="string">'**Rotation R:\n'</span>);
+disp(R);
+</pre><pre class="codeoutput">**Intrinsic K:
+       1935.6       26.599       649.91
+            0       1975.9       1030.7
+            0            0            1
+
+**Rotation R:
+    -0.030055    -0.074953      0.99673
+      0.77971      -0.6257    -0.023541
+      0.62542      0.77646     0.077247
+
+</pre><h2>6) Finding the projection of 3d using "P3x4" matrix<a name="9"></a></h2><pre>For 14 points RMSE: 1.181891</pre><pre class="codeinput">projectedPtn=(P*points3D')';
+projectedPtn=bsxfun(@times,projectedPtn,projectedPtn(:,3).^-1);
+RMSE=sqrt(sum(sum((points2D-projectedPtn).^2,2))./noOfPoints);
+fprintf(<span class="string">'\n For %d points RMSE: %f\n'</span>,noOfPoints,RMSE);
+</pre><pre class="codeoutput">
+ For 14 points RMSE: 1.181891
+</pre><h2>6.1) Plotting projected point and actual points<a name="10"></a></h2><p>Projected points are in yellow (marker: x) and actual points are in red (marker: o)</p><pre class="codeinput">img1=img;
+<span class="keyword">for</span> i=1:noOfPoints
+    x=round(projectedPtn(i,1));
+    y=round(projectedPtn(i,2));
+    <span class="comment">%fprintf('(x:%d,y:%d)',x,y);</span>
+    img1 = insertMarker(img1,[y,x],<span class="string">'x'</span>,<span class="string">'color'</span>,<span class="string">'yellow'</span>,<span class="string">'size'</span>,20);
+    img1 = insertMarker(img1,[points2D(i,2),points2D(i,1)],<span class="string">'o'</span>,<span class="string">'color'</span>,<span class="string">'red'</span>,<span class="string">'size'</span>,15);
+    img1=insertText(img1,[y+5,x+5], num2str(i), <span class="string">'FontSize'</span>,18,<span class="string">'BoxColor'</span>, <span class="string">'yellow'</span>);
+
+<span class="keyword">end</span>
+
+<span class="comment">% Legend</span>
+img1=insertText(img1,[10,10], <span class="string">'Legend'</span>, <span class="string">'FontSize'</span>,22,<span class="string">'BoxColor'</span>, <span class="string">'green'</span>);
+img1=insertText(img1,[10,60], <span class="string">'X : Projection (x=P.X) of 3D point '</span>, <span class="string">'FontSize'</span>,22,<span class="string">'BoxColor'</span>, <span class="string">'yellow'</span>);
+img1=insertText(img1,[10,110], <span class="string">'O : Marked Point'</span>, <span class="string">'FontSize'</span>,22,<span class="string">'BoxColor'</span>, <span class="string">'red'</span>);
+
+<span class="comment">% Adding Axis-label</span>
+img1=insertText(img1,[993+5,69], <span class="string">'z-axis'</span>, <span class="string">'FontSize'</span>,18,<span class="string">'BoxColor'</span>, <span class="string">'red'</span>);
+img1=insertText(img1,[36,913 + 5], <span class="string">'x-axis'</span>, <span class="string">'FontSize'</span>,18,<span class="string">'BoxColor'</span>, <span class="string">'red'</span>);
+img1=insertText(img1,[1570,989 + 5], <span class="string">'y-axis'</span>, <span class="string">'FontSize'</span>,18,<span class="string">'BoxColor'</span>, <span class="string">'red'</span>);
+
+figure(<span class="string">'name'</span>,<span class="string">'Projection'</span>);
+imshow(img1);
+impixelinfo;
+title(<span class="string">'\fontsize{10}{\color{magenta}Projection}'</span>);
+axis <span class="string">tight</span>,axis <span class="string">on</span>;
+
+<span class="comment">% Drawing 3d axis</span>
+line([973,993], [825,69], <span class="string">'Color'</span>, <span class="string">'red'</span>, <span class="string">'LineWidth'</span>, 3);
+line([973,36], [825,913], <span class="string">'Color'</span>, <span class="string">'red'</span>, <span class="string">'LineWidth'</span>, 3);
+line([973,1570], [825,989], <span class="string">'Color'</span>, <span class="string">'red'</span>, <span class="string">'LineWidth'</span>, 3);
+
+
+toc;
+</pre><pre class="codeoutput">Warning: Image is too big to fit on screen; displaying at 67% 
+Elapsed time is 1.939319 seconds.
+</pre><img vspace="5" hspace="5" src="myMainScript_02.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Assignment1-1 
+% Rollno: 163059009, 16305R011, 16305R001 
+
+%% Init
+file='../data/camR.jpg';
+img=imread(file); 
+dim=size(img);
+format shortG
+
+%% 0) Data Points
+% We have take 14 datapoints for our camera caliberation. 
+
+tic;
+%datatset : 14 points
+points3D_2=[1,0,1,1 ; %1
+            2,0,2,1 ; %2
+            1,0,3,1 ; %3
+            0,1,1,1 ; %4
+            0,2,2,1 ; %5
+            0,1,3,1 ; %6          
+            2,0,1,1 ; %7 
+            0,2,1,1 ; %8
+            4,0,2,1 ; %9
+            0,4,2,1 ; %10
+            3,0,3,1 ; %11
+            0,3,3,1 ; %12
+            0,0,4,1 ; %13
+            0,0,0,1 ; %14
+            ];
+        
+points2D_2=[737,898,1 ; %1
+            640,811,1 ; %2
+            541,898,1 ; %3
+            742,1034,1 ; %4
+            653,1105,1 ; %5
+            546,1041,1 ; %6
+            741,810,1  ; %7
+            756,1101,1 ; %8
+            644,625,1  ; %9
+            673,1253,1 ; %10
+            537,724,1  ; %11
+            555,1179,1 ; %12
+            447, 981,1 ; %13
+            825,973, 1 ; % 14
+            ];
+ 
+points3D=points3D_2;
+points2D=points2D_2;
+noOfPoints=size(points2D,1);
+
+
+%% 1) Normalization
+% Here we are doing the normalization of 2D and 3D point. Normalization is
+% such that distance of 2d and 3d from their respective origin is sqrt(2)
+% and sqrt(3) respectively.
+%
+% *Why Normalization is good?*
+%
+% Normalization help in bringing all points in one unit. Say measure unit in 
+% 3d world is cm/feet/m/km and in 2d image its pixels. So we cannot compare
+% cm/m/km etc with pixels. Normilization helps in bringing every datapoint to
+% same unit of measure. After calcuations are done, we can scale it back to
+% their respective unit.
+
+[newpts2D, T2,c2d]=normalize2d(points2D);
+[newpts3D, T3,c3d]=normalize3d(points3D);
+
+%% 2D data point Marking 
+% Showing the datapoints on image which are under observation. We have taken 
+% measurements for 14 datapoints.
+
+img1=img;
+for i=1:noOfPoints
+    img1 = insertMarker(img1,[points2D(i,2),points2D(i,1)],'x','color','red','size',15);
+    img1= insertText(img1,[points2D(i,2)+3,points2D(i,1)+3], num2str(i), 'FontSize',18,'BoxColor', 'magenta');
+end
+
+% Centroid
+img1 = insertMarker(img1,[c2d(2),c2d(1)],'x','color','green','size',15);
+img1= insertText(img1,[c2d(2)+5,c2d(1)+5], 'centroid', 'FontSize',18,'BoxColor', 'magenta');
+
+% Adding Axis-label
+img1=insertText(img1,[993+5,69], 'z-axis', 'FontSize',18,'BoxColor', 'red');
+img1=insertText(img1,[36,913 + 5], 'x-axis', 'FontSize',18,'BoxColor', 'red');
+img1=insertText(img1,[1570,989 + 5], 'y-axis', 'FontSize',18,'BoxColor', 'red');
+
+% Showing image
+figure('name','Original:Point Marked image');
+imshow(img1);
+impixelinfo;
+title('\fontsize{10}{\color{red}Original: Point Marked image}');
+axis tight,axis on;
+
+% Drawing 3d axis
+line([973,993], [825,69], 'Color', 'red', 'LineWidth', 3);
+line([973,36], [825,913], 'Color', 'red', 'LineWidth', 3);
+line([973,1570], [825,989], 'Color', 'red', 'LineWidth', 3);
+
+
+%% 2) Creating M matrix
+% Creating the M matrix of dimension 2Ix12 = 28x12 as I is 14
+% 
+% 
+% <<Mequation.png>>
+% 
+M=zeros(2*noOfPoints,12);
+
+for i=1:noOfPoints
+    M(2*(i-1)+1,1:3)=-1.*newpts3D(i,1:3);
+    M(2*(i-1)+1,4:8)=[-1,0,0,0,0];
+    M(2*(i-1)+1,9:11)=newpts2D(i,1).*newpts3D(i,1:3);
+    M(2*(i-1)+1,12)=newpts2D(i,1);
+    
+    M(2*i,1:4)=[0,0,0,0];
+    M(2*i,5:7)=-1.*newpts3D(i,1:3);
+    M(2*i,8)=-1;
+    M(2*i,9:11)=newpts2D(i,2).*newpts3D(i,1:3);
+    M(2*i,12)=newpts2D(i,2);
+end
+
+%% 3) Finding projection ~P
+[U,S,V]=svd(M);
+psol=V(:,12);
+p=reshape(psol,[4,3])';
+P=(inv(T2))*p*T3;
+P=P./P(3,4);
+
+fprintf('**Projection Matrix P:\n');
+disp(P);
+
+%% 4) Finding Xo
+HInfi=P(:,1:3); h=P(:,4);
+HInfiInv=inv(HInfi);
+%k=HInfi*HInfiInv;
+Xo=-HInfiInv*h;
+
+fprintf('**Intrinsic Param  Xo:\n');
+disp(Xo');
+%% 5) Finding Rotation and Caliberation
+[Rinv,Kinv] = qr(HInfiInv);
+R=Rinv';
+
+K=inv(Kinv);
+K=K/K(3,3);
+
+fprintf('**Intrinsic K:\n');
+disp(K);
+
+fprintf('**Rotation R:\n');
+disp(R);
+
+%% 6) Finding the projection of 3d using "P3x4" matrix
+%  For 14 points RMSE: 1.181891
+
+projectedPtn=(P*points3D')';
+projectedPtn=bsxfun(@times,projectedPtn,projectedPtn(:,3).^-1);
+RMSE=sqrt(sum(sum((points2D-projectedPtn).^2,2))./noOfPoints);
+fprintf('\n For %d points RMSE: %f\n',noOfPoints,RMSE);
+
+
+%% 6.1) Plotting projected point and actual points
+% Projected points are in yellow (marker: x) and actual points are in red (marker: o)
+img1=img;
+for i=1:noOfPoints   
+    x=round(projectedPtn(i,1));
+    y=round(projectedPtn(i,2));
+    %fprintf('(x:%d,y:%d)',x,y);
+    img1 = insertMarker(img1,[y,x],'x','color','yellow','size',20);
+    img1 = insertMarker(img1,[points2D(i,2),points2D(i,1)],'o','color','red','size',15);
+    img1=insertText(img1,[y+5,x+5], num2str(i), 'FontSize',18,'BoxColor', 'yellow');
+    
+end
+
+% Legend
+img1=insertText(img1,[10,10], 'Legend', 'FontSize',22,'BoxColor', 'green');
+img1=insertText(img1,[10,60], 'X : Projection (x=P.X) of 3D point ', 'FontSize',22,'BoxColor', 'yellow');
+img1=insertText(img1,[10,110], 'O : Marked Point', 'FontSize',22,'BoxColor', 'red');
+
+% Adding Axis-label
+img1=insertText(img1,[993+5,69], 'z-axis', 'FontSize',18,'BoxColor', 'red');
+img1=insertText(img1,[36,913 + 5], 'x-axis', 'FontSize',18,'BoxColor', 'red');
+img1=insertText(img1,[1570,989 + 5], 'y-axis', 'FontSize',18,'BoxColor', 'red');
+
+figure('name','Projection');
+imshow(img1);
+impixelinfo;
+title('\fontsize{10}{\color{magenta}Projection}');
+axis tight,axis on;
+
+% Drawing 3d axis
+line([973,993], [825,69], 'Color', 'red', 'LineWidth', 3);
+line([973,36], [825,913], 'Color', 'red', 'LineWidth', 3);
+line([973,1570], [825,989], 'Color', 'red', 'LineWidth', 3);
+
+
+toc;
+
+##### SOURCE END #####
+--></body></html>

@@ -7,13 +7,11 @@ img=imread(file);
 dim=size(img);
 format shortG
 
-%% Points
-tic;
-%datatset 1: 6 points
-points3D_1=[1,0,1,1 ; 2,0,2,1 ; 1,0,3,1 ; 0,1,1,1 ; 0,2,2,1 ; 0,1,3,1];
-points2D_1=[737,898,1 ; 640,811,1 ; 541,898,1 ; 742,1034,1 ; 653,1105,1 ; 546,1041,1];
+%% 0) Data Points
+% We have take 14 datapoints for our camera caliberation. 
 
-%datatset 2: 12 points
+tic;
+%datatset : 14 points
 points3D_2=[1,0,1,1 ; %1
             2,0,2,1 ; %2
             1,0,3,1 ; %3
@@ -52,24 +50,41 @@ noOfPoints=size(points2D,1);
 
 
 %% 1) Normalization
+% Here we are doing the normalization of 2D and 3D point. Normalization is
+% such that distance of 2d and 3d from their respective origin is sqrt(2)
+% and sqrt(3) respectively.
+%
+% *Why Normalization is good?*
+%
+% Normalization help in bringing all points in one unit. Say measure unit in 
+% 3d world is cm/feet/m/km and in 2d image its pixels. So we cannot compare
+% cm/m/km etc with pixels. Normilization helps in bringing every datapoint to
+% same unit of measure. After calcuations are done, we can scale it back to
+% their respective unit.
+
 [newpts2D, T2,c2d]=normalize2d(points2D);
 [newpts3D, T3,c3d]=normalize3d(points3D);
-%% 2D point Marking
+
+%% 2D data point Marking 
+% Showing the datapoints on image which are under observation. We have taken 
+% measurements for 14 datapoints.
+
 img1=img;
 for i=1:noOfPoints
     img1 = insertMarker(img1,[points2D(i,2),points2D(i,1)],'x','color','red','size',15);
     img1= insertText(img1,[points2D(i,2)+3,points2D(i,1)+3], num2str(i), 'FontSize',18,'BoxColor', 'magenta');
 end
 
-% centoride
+% Centroid
 img1 = insertMarker(img1,[c2d(2),c2d(1)],'x','color','green','size',15);
+img1= insertText(img1,[c2d(2)+5,c2d(1)+5], 'centroid', 'FontSize',18,'BoxColor', 'magenta');
 
 % Adding Axis-label
 img1=insertText(img1,[993+5,69], 'z-axis', 'FontSize',18,'BoxColor', 'red');
 img1=insertText(img1,[36,913 + 5], 'x-axis', 'FontSize',18,'BoxColor', 'red');
 img1=insertText(img1,[1570,989 + 5], 'y-axis', 'FontSize',18,'BoxColor', 'red');
 
-% showing image
+% Showing image
 figure('name','Original:Point Marked image');
 imshow(img1);
 impixelinfo;
@@ -83,7 +98,11 @@ line([973,1570], [825,989], 'Color', 'red', 'LineWidth', 3);
 
 
 %% 2) Creating M matrix
-
+% Creating the M matrix of dimension 2Ix12 = 28x12 as I is 14
+% 
+% 
+% <<Mequation.png>>
+% 
 M=zeros(2*noOfPoints,12);
 
 for i=1:noOfPoints
@@ -108,6 +127,7 @@ P=P./P(3,4);
 
 fprintf('**Projection Matrix P:\n');
 disp(P);
+
 %% 4) Finding Xo
 HInfi=P(:,1:3); h=P(:,4);
 HInfiInv=inv(HInfi);
@@ -123,8 +143,6 @@ R=Rinv';
 K=inv(Kinv);
 K=K/K(3,3);
 
-%format long g
-%format compact
 fprintf('**Intrinsic K:\n');
 disp(K);
 
@@ -133,6 +151,7 @@ disp(R);
 
 %% 6) Finding the projection of 3d using "P3x4" matrix
 %  For 14 points RMSE: 1.181891
+
 projectedPtn=(P*points3D')';
 projectedPtn=bsxfun(@times,projectedPtn,projectedPtn(:,3).^-1);
 RMSE=sqrt(sum(sum((points2D-projectedPtn).^2,2))./noOfPoints);
