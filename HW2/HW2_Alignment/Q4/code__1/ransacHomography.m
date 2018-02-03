@@ -1,8 +1,8 @@
-function [ bestHomography,bestInliners,cp1,cp2] = ransacHomography(matchedPoints1, matchedPoints2,thresh )
+function [ bestHomography,bestInliners,cp1,cp2] = ransacHomography(matchedPoints1, matchedPoints2,thresh,ransacIteration)
 %   RANSACHOMOGRAPHY Summary of this function goes here
 %   Detailed explanation goes here
     
-    iter = 4000;    
+    iter = ransacIteration;    
     matchSize=size(matchedPoints1,1);
     k=4;
     p1=zeros(4,3);

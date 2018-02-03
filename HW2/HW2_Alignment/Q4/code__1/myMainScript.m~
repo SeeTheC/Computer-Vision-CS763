@@ -3,31 +3,21 @@
 % Rollno: 163059009, 16305R011, 16305R001 
 
 %% Init
-file='../input/hill/1.JPG';
+file='../input/ledge/1.JPG';
 img1=rgb2gray(imread(file)); 
 cimg1=imread(file); 
 dim1=size(img1);
 format shortG
 
-file='../input/hill/2.JPG';
+file='../input/ledge/2.JPG';
 img2=rgb2gray(imread(file));
 cimg2=imread(file);
 dim2=size(img2);
 
-file='../input/hill/3.JPG';
+file='../input/ledge/3.JPG';
 img3=rgb2gray(imread(file)); 
 cimg3=imread(file);
 dim3=size(img3);
-%%
-[outImg]=panaroma({cimg1,cimg2,cimg3},200,2,1000);
-
-figure('name','Stiched Image');
-imshow(uint8(outImg));
-impixelinfo;
-title('\fontsize{10}{\color{magenta} Stiched Image}');
-axis tight,axis on;
-o1 = get(gca, 'Position');
-colorbar(),set(gca, 'Position', o1);
 
 %%
 pad=200;
@@ -110,9 +100,10 @@ colorbar(),set(gca, 'Position', o1);
 
 %% 2. Trasformation of Image 1
 
-[timg1] = trasformImage(cimg1,H);
-[timg2] = cimg2;
-[timg3] = trasformImage(cimg3,H2);
+pad=0;
+[timg1] = trasformationImage(cimg1,H,pad);
+[timg2] = padarray(cimg2,[pad,pad]);
+[timg3] = trasformationImage(cimg3,H2,pad);
 
 
 %% Stiching of Multiple Images
