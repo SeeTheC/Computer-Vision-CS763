@@ -17,11 +17,11 @@ function [ outImg ] = panaroma(imageSet,pad,ransacThreshold,ransacIteration)
 
     %% Padding zeros for avoiding cropping of images
     for i=1:noOfImage
-        workingImgSet{i}=padarray(workingImgSet{i},[pad,pad]); 
-        imageSet{i}=padarray(imageSet{i},[pad,pad]); 
+        workingImgSet{i}=padarray(workingImgSet{i},pad); 
+        imageSet{i}=padarray(imageSet{i},pad); 
     end
     
-    %% Feature Extraction(extract matching keypoints for two adjecent images);
+    %% Feature Extraction using SIFT (extract matching keypoints for two adjecent images);
    
     for i=1:noOfImage-1
         [mapping,vpts1,vpts2]=match(workingImgSet{i},workingImgSet{i+1});
