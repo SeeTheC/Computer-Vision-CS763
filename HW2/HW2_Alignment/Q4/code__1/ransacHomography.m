@@ -2,7 +2,7 @@ function [ bestHomography,bestInliners,cp1,cp2] = ransacHomography(matchedPoints
 %   RANSACHOMOGRAPHY Summary of this function goes here
 %   Detailed explanation goes here
     
-    iter = 6000;    
+    iter = 4000;    
     matchSize=size(matchedPoints1,1);
     k=4;
     p1=zeros(4,3);

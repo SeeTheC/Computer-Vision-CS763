@@ -37,18 +37,6 @@ for i = 1 : size(des1,1)
       match(i) = 0;
    end
 end
-%{
-for i = 1 : size(des1,1)
-    diffSq=bsxfun(@minus,des2,des1(i,:)).^2;
-    error=sqrt(sum(diffSq,2));
-    [vals,indx] = sort(error);
-    if (vals(1) == 0)
-       match(i) = indx(1);
-    else
-        match (i)= 0;
-    end
-end
-%}
 num = sum(match > 0);
 fprintf('Found %d matches.\n', num);
 
