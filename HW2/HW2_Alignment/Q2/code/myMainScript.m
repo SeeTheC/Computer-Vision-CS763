@@ -1,6 +1,4 @@
-%% Load Data
-%load('../input/Q1data.mat');
-%% Assignment2-1 
+%% Assignment2-2 (Cross Ratio) 
 % Rollno: 163059009, 16305R011, 16305R001 
 
 %% Init

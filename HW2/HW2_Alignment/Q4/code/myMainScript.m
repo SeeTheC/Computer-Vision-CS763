@@ -63,13 +63,14 @@ padding=[0,0]; ransacThershold=2; ransacInter=660;
 
 % Creating Panaroma for Monument Image
 fprintf('\n** Creating Panaroma for monument Image **\n');
-img1=padarray(img1,[1200,2000],'pre');
-img2=padarray(img2,[1200,2000],'pre');
+img1=padarray(img1,[1200,2600],'pre');
+img2=padarray(img2,[1200,2600],'pre');
 
-img1=padarray(img1,[650,0],'post');
-img2=padarray(img2,[650,0],'post');
+img1=padarray(img1,[800,0],'post');
+img2=padarray(img2,[800,0],'post');
 
 [outImg]=panaroma({img1,img2},padding,ransacThershold,ransacInter);
+%%
 
 figure('name','Panaroma Image: Monument');
 imshow(uint8(outImg));

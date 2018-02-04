@@ -66,24 +66,6 @@ axis tight,axis on;
 
 fprintf('For barbara image theta = %d tx=%d minValue=%f\n',minTheta,minTx,minEntropyVal);
 
-%%
-range=256;
-timg=movImg;
-transIdx=0;
-evm=zeros(range);
-timg=moveImage(timg,45,[-10,1],0);
-for i=1:range
-    timg=moveImage(movImg,0,[-i,i],0);
-    [entropyValue]=entropy(timg,fixImg,binSize);
-    evm(i)=entropyValue;  
-    if entropyValue<2.3309
-        break;
-    end
-    transIdx=transIdx+1;  
-end
-fprintf('Done: ev=%f  i=%d\n',entropyValue,i);
-figure
-imshow(uint8(timg));
 
 %% 2. Flash image
 
@@ -126,7 +108,7 @@ axis tight,axis on;
 
 %% 2.2 Finding Alignment
 % Finding Alignment using brute force
-% Total computation time: 437.173013 seconds.
+% Total computation time: 437.173013 seconds ~= 7 mins
 tic
 movImg=movedFlash;
 rotRange=[-60,60]; transRange = [-12,12]; binSize=10;
@@ -153,3 +135,93 @@ axis tight,axis on;
 
 fprintf('For Flash image theta = %d tx=%d minValue=%f\n',minTheta,minTx,minEntropyVal);
 
+
+%% 3. Obeservation
+% If image size is large the brute force method takes a lot of time for
+% finding the alignment. Like in the second case i.e Flash image, it took almost 
+% 437 sec i.e approx 7 mins for the computation even for the fewer angles.
+% Also we got the translation. error of 1 in the second case.
+
+
+%% 4. Undesirable case for Barbar case
+% Undesirable means " images are obviously misaligned but the
+% joint entropy is (falsely and undesirably) lower than the ‘true’ minimum"
+% The undesirabilty will be caused "mainly" due to translation. As
+% translation is not cyclic like rotation. Their may arise case where the
+% "true" joint entropy will be less the min entropy
+% Example: Moving the barbar image rot=-40 and tx=-40 ty=0, noise=[0,10];
+% True answer : rot= +40 and tx= +40 ty=0;
+
+%% 4.1 Reading Img
+file='../input/barbara.png';
+fixImg=imread(file); 
+
+file='../input/negative_barbara.png';
+movImg=imread(file); 
+%subplot(1,2,1);
+
+%% 4.2 Moving Image
+% Moving the barbar image rot=-40 and tx=-40 ty=0, noise=[0,10];
+mBarbaraImg=moveImage(movImg,-40,[-40,0],10);
+
+
+figure('name','Rotated translated noise barbara Image');
+subplot(1,2,1);
+imshow(fixImg);
+title('\fontsize{10}{\color{red}Fixed Image of Barbara (Img1)}');
+axis tight,axis on;
+
+subplot(1,2,2);
+imshow(uint8(mBarbaraImg));
+title('\fontsize{10}{\color{magenta}Rotated(-40) + Translated(-40) + Noise barbara Image}');
+axis tight,axis on;
+
+
+%% 4.2 Finding Alignment
+range=80;
+evm=zeros(range,1);
+binSize=20;
+for i=1:range    
+    timg=moveImage(mBarbaraImg,i,[i,0],0);       
+    [entropyValue]=entropy(timg,fixImg,binSize);
+    evm(i)=entropyValue;     
+end
+[minEntropy,index]=min(evm(:));
+
+fprintf('Undesirable Case: Babara image TRUE theta = 40 tx = 40 minValue=%f\n',evm(40));
+fprintf('Undesirable Case: Babara image actual theta = %d tx=%d minValue=%f\n',index,index,minEntropy);
+
+
+%% 4.3 Plots
+figure('name',' Undesirable Plot of barbar case');
+plot(evm);
+ylim([4.3,4.46]);
+title('\fontsize{10}{\color{magenta} Undesirable Plot of barbar case}');
+grid on
+xlabel('Translation + Rotation ( i.e Tx= x pixel & Rot= x deg ) ');ylabel('Entropy');
+
+
+figure('name','Undesirable Result');
+subplot(2,2,1);
+imshow(fixImg);
+title('\fontsize{10}{\color{red}Fixed Image}');
+axis tight,axis on;
+
+subplot(2,2,3);
+imshow(uint8(mBarbaraImg));
+title('\fontsize{10}{\color{red} Moved  Image}');
+axis tight,axis on;
+
+% True Result
+subplot(2,2,2);
+timg=moveImage(mBarbaraImg,40,[40,0],0);
+imshow(uint8(timg));
+title('\fontsize{10}{\color{magenta} True Result (Tx=40 & Rot=40)}');
+axis tight,axis on;
+
+% Actual Result
+subplot(2,2,4);
+timg=moveImage(mBarbaraImg,80,[80,0],0);
+imshow(uint8(timg));
+title('\fontsize{10}{\color{magenta} Actual Result (Tx=80 & Rot=80)}');
+axis tight,axis on;
