@@ -17,10 +17,11 @@ local gradB = torch.load("../samples/gradB_sample_1.bin")[1]
 local target = torch.load("../samples/target_sample_1.bin")
 
 local my_output = linear:forward(input:resize(5, 192))
-local my_gradInput = linear:backward(input, gradOutput)
+local my_gradInput = linear:backward(input:resize(5, 192), gradOutput)
 local my_gradW = linear.gradW
 local my_gradB = linear.gradB
 
---logger:debug(output - my_output)
---logger:debug(gradW - my_gradW)
---logger:debug(gradB - my_gradB)
+logger:debug("")
+logger:debug("Output = " .. torch.sum(output - my_output))
+logger:debug("GradW  = " .. torch.sum(gradW - my_gradW))
+logger:debug("GradB  = " .. torch.sum(gradB - my_gradB))

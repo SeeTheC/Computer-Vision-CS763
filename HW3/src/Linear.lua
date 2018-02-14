@@ -28,22 +28,12 @@ function Linear:forward(input)
 end
 
 function Linear:backward(input, gradOutput)
-	self.gradInput = torch.zeros(input:size())
-	for i = 1, input:size(1) do
-		self.gradInput[i] = gradOutput[i]:reshape(1, self.n_output) * self.W
-	end
-	
-	for k = 1, input:size(1) do
-		local dodw = torch.Tensor(self.n_output, self.n_input * self.n_output)
-		local st = 1
-		for i = 1, self.n_output do
-			for j = 1, self.n_input do
-				dodw[i][st] = input[k][j]
-				st = st + 1
-			end
-		end
-		self.gradW[k] = (gradOutput:reshape(1, self.n_output) * dodw):reshape(self.n_output, self.n_input)
-	end
-	-- TODO: self.gradB
+	self.gradInput = gradOutput * self.W
+
+	local gradOutput_T = gradOutput:t()
+	self.gradW = gradOutput_T * input
+
+	self.gradB = torch.sum(gradOutput_T, 2)
+
 	return self.gradInput
 end
