@@ -17,8 +17,7 @@ function Criterion:forward(input, target)
 	local loss = 0
 	for i = 1, inputSize do
 		p = self:softmax(input[i])
-		--here torch.max just use to extract value from the tensor
-		loss = loss - torch.log(p[torch.max(target[i])])
+		loss = loss - torch.log(p[target[i] + 1])
 	end
 	return loss / m
 end

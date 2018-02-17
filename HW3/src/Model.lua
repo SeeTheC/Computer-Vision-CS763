@@ -33,6 +33,9 @@ function Model:backward(input, gradOutput)
 	local nextGradOutput = gradOutput
 	for i = #self.Layers, 2, -1 do
 		nextGradOutput = self.Layers[i]:backward(self.Layers[i - 1].output, nextGradOutput)
+		if torch.type(self.Layers[i]) ~= "ReLU" then
+			self.Layers[i]:updateParams(0.001)
+		end
 	end
 	nextGradOutput = self.Layers[1]:backward(input, nextGradOutput)
 	return nextGradOutput
@@ -40,7 +43,7 @@ end
 
 function Model:dispGradParam()
 	for i = #self.Layers, 1 do
-		if tensor.type(self.Layer[i]) == "Linear" then
+		if torch.type(self.Layer[i]) == "Linear" then
 			print(self.Layers[i].W)
 			print(self.Layers[i].B)
 		end

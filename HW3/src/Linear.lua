@@ -43,3 +43,8 @@ function Linear:resetGrads()
 	self.gradB = torch.Tensor()
 	self.gradInput = torch.Tensor()
 end
+
+function Linear:updateParams(learning_rate)
+	self.W = self.W - learning_rate * self.gradW
+	self.B = self.B - learning_rate * self.gradB
+end

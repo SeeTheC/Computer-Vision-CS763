@@ -3,9 +3,10 @@ require "Linear"
 require "ReLU"
 require "Criterion"
 require "Model"
+require "image"
 
 local function equal(matrix1, matrix2)
-	if (torch.sum((matrix1 - matrix2):abs()) < 1e-9) then
+	if (torch.sum((matrix1 - matrix2)) < 1e-9) then
 		return "Equal"
 	else
 		return "Not Equal"
@@ -95,5 +96,46 @@ function model2()
 	logger:debug("Criterion GradInput : " .. equal(gradCriterionInput, criterion_gradInput))
 end
 
-model1()
-model2()
+function train()
+	local nn = Model()
+	nn:addLayer(Linear(11664, 150))
+	nn:addLayer(ReLU())
+	nn:addLayer(Linear(150, 30))
+	nn:addLayer(ReLU())
+	nn:addLayer(Linear(30, 6))
+	local criterion = Criterion()
+
+	logger:debug("Loading the dataset")
+	local input = torch.load("../dataset/Train/data.bin"):double()
+	local target = torch.load("../dataset/Train/labels.bin"):double()
+	logger:debug("Dataset loaded")
+
+	local n_images = input:size(1)
+	local height = input:size(2)
+	local width = input:size(3)
+
+	logger:debug("Normalizing Data")
+	local mean = torch.mean(input, 1)
+	local stddev = torch.std(input, 1)
+
+	for i = 1, n_images do
+		input[i] = torch.cdiv((input[i] - mean), stddev)
+	end
+	logger:debug("Normalizing finished")
+
+	logger:debug("Beginning Gradient Descent")
+	for epoch = 1, 1 do
+		local output = nn:forward(input:resize(n_images, height * width))
+		local critetion_output = criterion:forward(output, target)
+		if epoch then
+			print("Epochs: " .. epoch .. ", Loss: " .. criterion_output)
+		end
+		local criterion_gradInput = criterion:backward(output, target)
+		nn:backward(input:resize(n_images, height * width), criterion_gradInput)
+	end
+	logger:debug("Gradient Descent converged")
+end
+
+--model1()
+--model2()
+train()

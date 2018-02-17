@@ -44,10 +44,10 @@ end
 -- Debug log message
 function Logger:debug(message)
 	if self.logging_level <= DEBUG then
-		print("[DEBUG] " .. tostring(message))
+		print(os.date("%Y-%m-%d-%X") .. " [DEBUG] " .. tostring(message))
 		if self.log_to_file then
 			local log_file = io.open(self.log_file_name, "a")
-			log_file:write("[DEBUG] " .. tostring(message) .. "\n")
+			log_file:write(os.date("%Y-%m-%d-%X") .. " [DEBUG] " .. tostring(message) .. "\n")
 			log_file:close()
 		end
 	end
@@ -56,10 +56,10 @@ end
 -- Info log message
 function Logger:info(message)
 	if self.logging_level <= INFO then
-		print("[INFO ] " .. tostring(message))
+		print(os.date("%Y-%m-%d-%X") .. " [INFO ] " .. tostring(message))
 		if self.log_to_file then
 			local log_file = io.open(self.log_file_name, "a")
-			log_file:write("[INFO ] " .. tostring(message) .. "\n")
+			log_file:write(os.date("%Y-%m-%d-%X") .. " [INFO ] " .. tostring(message) .. "\n")
 			log_file:close()
 		end
 	end
@@ -68,10 +68,10 @@ end
 -- Warning log message
 function Logger:warn(message)
 	if self.logging_level <= WARN then
-		print("[WARN] " .. tostring(message))
+		print(os.date("%Y-%m-%d-%X") .. " [WARN] " .. tostring(message))
 		if self.log_to_file then
 			local log_file = io.open(self.log_file_name, "a")
-			log_file:write("[WARN ] " .. tostring(message) .. "\n")
+			log_file:write(os.date("%Y-%m-%d-%X") .. " [WARN ] " .. tostring(message) .. "\n")
 			log_file:close()
 		end
 	end
@@ -80,10 +80,10 @@ end
 -- Error log message
 function Logger:error(message)
 	if self.logging_level <= ERROR then
-		print("[ERROR] " .. tostring(message))
+		print(os.date("%Y-%m-%d-%X") .. " [ERROR] " .. tostring(message))
 		if self.log_to_file then
 			local log_file = io.open(self.log_file_name, "a")
-			log_file:write("[ERROR] " .. tostring(message) .. "\n")
+			log_file:write(os.date("%Y-%m-%d-%X") .. " [ERROR] " .. tostring(message) .. "\n")
 			log_file:close()
 			error()
 		end
@@ -92,11 +92,11 @@ end
 
 -- Generic log message
 function Logger:log(message)
-	print("[MSG  ]")
+	print(os.date("%Y-%m-%d-%X") .. "[MSG  ]")
 	print(tostring(message))
 	if self.log_to_file then
 		local log_file = io.open(self.log_file_name, "a")
-		log_file:write("[MSG  ]\n")
+		log_file:write(os.date("%Y-%m-%d-%X") .. " [MSG  ]\n")
 		log_file:write(tostring(message) .. "\n")
 		log_file:close()
 	end
