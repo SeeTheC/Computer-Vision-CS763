@@ -7,7 +7,7 @@ function ReLU:__init(leak)
 
 	-- Leaky ReLU
 	self.leak = leak or 0
-	
+
 	-- No need to allocate memory to these tensors
 	-- They will be replaced by the calculated values
 	self.output = torch.Tensor()
@@ -15,17 +15,22 @@ function ReLU:__init(leak)
 end
 
 function ReLU:forward(input)
-	self.output = torch.zeros(input:size())
-	for i = 1, input:size(1) do
-		self.output[i] = (input[i] > 0) and input[i] or self.leak * input[i]
-	end
+	self.output = input:clone()
+	self.output:apply(
+		function(p)
+			return (p > 0 and p or self.leak * p)
+		end
+	)
 	return self.output
 end
 
 function ReLU:backward(input, gradOutput)
-	self.gradInput = torch.zeros(input:size())
-	for i = 1, input:size(1) do
-		self.gradInput[i] = gradOutput[i] * (input[i] > 0 and 1 or self.leak)
-	end
+	self.gradInput = input:clone()
+	self.gradInput:apply(
+		function(p)
+			return (p > 0 and 1 or self.leak)
+		end
+	)
+	self.gradInput = torch.cmul(self.gradInput, gradOutput)
 	return self.gradInput
 end
