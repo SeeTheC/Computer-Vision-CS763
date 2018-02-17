@@ -1,6 +1,6 @@
 require "Logger"
 
-local ReLU = torch.class('ReLU')
+local ReLU = torch.class("ReLU")
 
 function ReLU:__init(leak)
 	logger:debug("Initializing ReLU Layer")
@@ -33,4 +33,8 @@ function ReLU:backward(input, gradOutput)
 	)
 	self.gradInput = torch.cmul(self.gradInput, gradOutput)
 	return self.gradInput
+end
+
+function ReLU:resetGrads()
+	self.gradInput = torch.Tensor()
 end

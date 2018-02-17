@@ -1,6 +1,6 @@
 require "Logger"
 
-local Linear = torch.class('Linear')
+local Linear = torch.class("Linear")
 
 function Linear:__init(n_input, n_output)
 	logger:debug("Initializing Linear Layer")
@@ -36,4 +36,10 @@ function Linear:backward(input, gradOutput)
 	self.gradB = torch.sum(gradOutput_T, 2)
 
 	return self.gradInput
+end
+
+function Linear:resetGrads()
+	self.gradW = torch.Tensor()
+	self.gradB = torch.Tensor()
+	self.gradInput = torch.Tensor()
 end

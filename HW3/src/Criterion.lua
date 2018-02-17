@@ -1,6 +1,6 @@
 require "Logger"
 
-local Criterion = torch.class('Criterion')
+local Criterion = torch.class("Criterion")
 
 function Criterion:__init ()
 	logger:debug("Initializing Criterion Layer")
