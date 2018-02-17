@@ -5,7 +5,7 @@ require "Criterion"
 require "Model"
 
 local function equal(matrix1, matrix2)
-	if (math.abs(torch.sum(matrix1 - matrix2)) < 1e-6) then
+	if (torch.sum((matrix1 - matrix2):abs()) < 1e-9) then
 		return "Equal"
 	else
 		return "Not Equal"
