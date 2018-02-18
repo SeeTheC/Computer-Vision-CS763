@@ -108,6 +108,9 @@ function train()
 	logger:debug("Loading the dataset")
 	local input = torch.load("../dataset/Train/data.bin"):double()
 	local target = torch.load("../dataset/Train/labels.bin"):double()
+	for i = 1, target:size(1) do
+		target[i] = target[i] + 1
+	end
 	logger:debug("Dataset loaded")
 
 	local n_images = input:size(1)
@@ -126,9 +129,9 @@ function train()
 	logger:debug("Beginning Gradient Descent")
 	for epoch = 1, 1 do
 		local output = nn:forward(input:resize(n_images, height * width))
-		local critetion_output = criterion:forward(output, target)
+		local criterion_output = criterion:forward(output, target)
 		if epoch then
-			print("Epochs: " .. epoch .. ", Loss: " .. criterion_output)
+			logger:info("Epochs: " .. epoch .. ", Loss: " .. criterion_output)
 		end
 		local criterion_gradInput = criterion:backward(output, target)
 		nn:backward(input:resize(n_images, height * width), criterion_gradInput)
