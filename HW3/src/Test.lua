@@ -4,6 +4,7 @@ require "ReLU"
 require "Criterion"
 require "Model"
 require "image"
+require "nn"
 
 local function equal(matrix1, matrix2)
 	if (torch.sum((matrix1 - matrix2)) < 1e-9) then
@@ -98,11 +99,11 @@ end
 
 function train()
 	local nn = Model()
-	nn:addLayer(Linear(11664, 150))
-	nn:addLayer(ReLU())
-	nn:addLayer(Linear(150, 30))
-	nn:addLayer(ReLU())
-	nn:addLayer(Linear(30, 6))
+	nn:addLayer(Linear(11664, 6))
+	--nn:addLayer(ReLU())
+	--nn:addLayer(Linear(150, 30))
+	--nn:addLayer(ReLU())
+	--nn:addLayer(Linear(30, 6))
 	local criterion = Criterion()
 
 	logger:debug("Loading the dataset")
@@ -127,18 +128,103 @@ function train()
 	logger:debug("Normalizing finished")
 
 	logger:debug("Beginning Gradient Descent")
-	for epoch = 1, 1 do
+	for epoch = 1, 20 do
+		logger:debug("Forward in epoch " .. epoch)
 		local output = nn:forward(input:resize(n_images, height * width))
 		local criterion_output = criterion:forward(output, target)
 		if epoch then
 			logger:info("Epochs: " .. epoch .. ", Loss: " .. criterion_output)
 		end
+		logger:debug("Forward end")
+		logger:debug("Backwards in epoch " .. epoch)
 		local criterion_gradInput = criterion:backward(output, target)
 		nn:backward(input:resize(n_images, height * width), criterion_gradInput)
+		logger:debug("Backwards end")
 	end
 	logger:debug("Gradient Descent converged")
 end
 
+function rmse(m1, m2)
+	return torch.sqrt(torch.sum(torch.pow(m1 - m2, 2)))
+end
+
+function train_lib()
+	local nn1 = Model()
+	local nn2 = nn.Sequential()
+	nn1:addLayer(Linear(11664, 150))
+	nn1:addLayer(ReLU())
+	nn1:addLayer(Linear(150, 30))
+	nn1:addLayer(ReLU())
+	nn1:addLayer(Linear(30, 6))
+
+	local nn_linear1 = nn.Linear(11664, 150)
+	local nn_linear2 = nn.Linear(150, 30)
+	local nn_linear3 = nn.Linear(30, 6)
+	nn2:add(nn_linear1)
+	nn2:add(nn.ReLU())
+	nn2:add(nn_linear2)
+	nn2:add(nn.ReLU())
+	nn2:add(nn_linear3)
+
+	nn1.Layers[1].W = nn_linear1.weight
+	nn1.Layers[1].B = nn_linear1.bias
+	nn1.Layers[3].W = nn_linear2.weight
+	nn1.Layers[3].B = nn_linear2.bias
+	nn1.Layers[5].W = nn_linear3.weight
+	nn1.Layers[5].B = nn_linear3.bias
+	
+	local criterion1 = Criterion()
+	local criterion2 = nn.CrossEntropyCriterion()
+
+	logger:debug("Loading the dataset")
+	local input = torch.load("../dataset/Train/data.bin"):double()
+	local target = torch.load("../dataset/Train/labels.bin"):double()
+	for i = 1, target:size(1) do
+		target[i] = target[i] + 1
+	end
+	logger:debug("Dataset loaded")
+
+	local n_images = input:size(1)
+	local height = input:size(2)
+	local width = input:size(3)
+
+	logger:debug("Normalizing Data")
+	local mean = torch.mean(input, 1)
+	local stddev = torch.std(input, 1)
+
+	for i = 1, n_images do
+		input[i] = torch.cdiv((input[i] - mean), stddev)
+	end
+	logger:debug("Normalizing finished")
+
+	logger:debug("Beginning Gradient Descent")
+	for epoch = 1, 20 do
+		logger:debug("Forward in epoch " .. epoch)
+		local output1 = nn1:forward(input:resize(n_images, height * width))
+		local output2 = nn2:forward(input:resize(n_images, height * width))
+		logger:debug("Output: " .. rmse(output1, output2))
+		local criterion1_output = criterion1:forward(output1, target)
+		local criterion2_output = criterion2:forward(output2, target)
+		logger:debug("Criterion: " .. (criterion1_output - criterion2_output))
+		if epoch then
+			logger:info("Epochs: " .. epoch .. ", Loss: " .. criterion1_output)
+			logger:info("Epochs: " .. epoch .. ", Loss: " .. criterion2_output)
+		end
+		logger:debug("Forward end")
+		logger:debug("Backwards in epoch " .. epoch)
+		local criterion1_gradInput = criterion1:backward(output1, target)
+		local criterion2_gradInput = criterion2:backward(output2, target)
+		logger:debug("Criterion GradInput: " .. rmse(criterion1_gradInput, criterion2_gradInput))
+
+		nn1:backward(input:resize(n_images, height * width), criterion1_gradInput)
+		nn2:backward(input:resize(n_images, height * width), criterion2_gradInput)
+		logger:debug("Backwards end")
+	end
+	logger:debug("Gradient Descent converged")
+end
+
+
 --model1()
 --model2()
-train()
+--train()
+train_lib()
