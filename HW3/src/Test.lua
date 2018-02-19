@@ -4,6 +4,7 @@ require "ReLU"
 require "Criterion"
 require "Model"
 require "GradientDescent"
+require "BatchNormalization"
 
 local function equal(matrix1, matrix2)
 	if (torch.sum((matrix1 - matrix2)) < 1e-9) then
@@ -96,93 +97,42 @@ function model2()
 	logger:debug("Criterion GradInput : " .. equal(gradCriterionInput, criterion_gradInput))
 end
 
-function train()
-	local nn = Model()
-	nn:addLayer(Linear(11664, 6))
-	--nn:addLayer(ReLU())
-	--nn:addLayer(Linear(150, 30))
-	--nn:addLayer(ReLU())
-	--nn:addLayer(Linear(30, 6))
-	local criterion = Criterion()
-
-	logger:debug("Loading the dataset")
-	local input = torch.load("../dataset/Train/data.bin"):double()
-	local target = torch.load("../dataset/Train/labels.bin"):double()
-	for i = 1, target:size(1) do
-		target[i] = target[i] + 1
-	end
-	logger:debug("Dataset loaded")
-
-	local n_images = input:size(1)
-	local height = input:size(2)
-	local width = input:size(3)
-
-	logger:debug("Normalizing Data")
-	local mean = torch.mean(input, 1)
-	local stddev = torch.std(input, 1)
-
-	for i = 1, n_images do
-		input[i] = torch.cdiv((input[i] - mean), stddev)
-	end
-	logger:debug("Normalizing finished")
-
-	logger:debug("Beginning Gradient Descent")
-	for epoch = 1, 20 do
-		logger:debug("Forward in epoch " .. epoch)
-		local output = nn:forward(input:resize(n_images, height * width))
-		local criterion_output = criterion:forward(output, target)
-		if epoch then
-			logger:info("Epochs: " .. epoch .. ", Loss: " .. criterion_output)
-		end
-		logger:debug("Forward end")
-		logger:debug("Backwards in epoch " .. epoch)
-		local criterion_gradInput = criterion:backward(output, target)
-		nn:backward(input:resize(n_images, height * width), criterion_gradInput)
-		logger:debug("Backwards end")
-	end
-	logger:debug("Gradient Descent converged")
-end
-
 function rmse(m1, m2)
 	return torch.sqrt(torch.sum(torch.pow(m1 - m2, 2)))
 end
 
-function train_lib()
-	logger:debug("Loading the dataset")
+function train()
 	local input = torch.load("../dataset/Train/data.bin"):double()
 	local target = torch.load("../dataset/Train/labels.bin"):double()
-	for i = 1, target:size(1) do
-		target[i] = target[i] + 1
-	end
-	logger:debug("Dataset loaded")
+	target = target + 1
 
-	logger:debug("Normalizing Data")
+	input = BatchNormalization():forward(input)
 	local mean = torch.mean(input, 1)
 	local stddev = torch.std(input, 1)
 
-	local n_images = input:size(1)
-
-	for i = 1, n_images do
-		input[i] = torch.cdiv((input[i] - mean), stddev)
+	for i = 1, input:size(1) do
+		input[i] = input[i] - mean
 	end
-	logger:debug("Normalizing finished")
 
 	local mlp = Model()
-	mlp:addLayer(Linear(11664, 500))
+	mlp:addLayer(Linear(11664, 50))
+	mlp:addLayer(BatchNormalization())
 	mlp:addLayer(ReLU())
-	mlp:addLayer(Linear(500, 6))
+	mlp:addLayer(Linear(50, 10))
+	mlp:addLayer(BatchNormalization())
+	mlp:addLayer(ReLU())
+	mlp:addLayer(Linear(10, 6))
 
 	local criterion = Criterion()
 
-	local trainer = GradientDescent(mlp, criterion, 1e-7, 500)
-	local loss = trainer:train(input, target, 108)
+	local trainer = GradientDescent(mlp, criterion, 1e-2, 50000)
+	trainer:train(input, target, 729)--input:size(1))
 
 	local filename = os.date("MLP_%Y-%m-%d-%X.bin")
 	torch.save(filename, mlp)
 end
 
 
---model1()
---model2()
---train()
-train_lib()
+-- model1()
+-- model2()
+train()
