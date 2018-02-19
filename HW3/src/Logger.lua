@@ -9,7 +9,7 @@ DISABLE = 100
 function Logger:__init(logging_level, log_to_file)
 	self.logging_level = logging_level or DISABLE
 
-	self.log_to_file = (log_to_file == nil) and true or false
+	self.log_to_file = (log_to_file == nil or log_to_file == true) and true or false
 	if self.log_to_file then
 		self.log_file_name = os.date("%Y-%m-%d-%X.log")
 		print("Logging to file " .. self.log_file_name)
@@ -103,4 +103,4 @@ function Logger:log(message)
 end
 
 -- Initialize Logger object
-logger = Logger.new(INFO)
+logger = Logger.new(DEBUG, true)
