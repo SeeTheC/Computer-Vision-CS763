@@ -28,14 +28,20 @@ function GradientDescent:train(input, target, batch_size)
 		iteration = iteration + 1
 		local criterion_output = 0
 		local n_batches = n_images / batch_size
-		local start_index = 1
-		for batch = 1, n_batches do
-			local output = self.model:forward(input:narrow(1, start_index, batch_size):resize(batch_size, height * width))
+		local start_index = 1 + torch.Tensor(1):random(0, n_batches - 1)[1] * batch_size
+		-- for batch = 1, n_batches do
+			local batch_input = input:narrow(1, start_index, batch_size):resize(batch_size, height * width)
+			local output = self.model:forward(batch_input)
+			-- print(iteration, batch, torch.mean(torch.max(output, 2), 1)[1][1], torch.mean(torch.min(output, 2), 1)[1][1])
 			criterion_output = criterion_output + self.criterion:forward(output, target)
 
 			local criterion_gradInput = self.criterion:backward(output, target)
-			self.model:backward(input:narrow(1, start_index, batch_size):resize(batch_size, height * width), criterion_gradInput, self.learningRate)
+			self.model:backward(batch_input, criterion_gradInput, self.learningRate)
 			start_index = start_index + batch_size
+		-- end
+
+		for i = 1, #self.model.Layers do
+			self.model.Layers[i]:resetGrads()
 		end
 
 		criterion_output = criterion_output / n_batches
