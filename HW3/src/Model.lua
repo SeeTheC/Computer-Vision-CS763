@@ -29,15 +29,13 @@ function Model:forward(input)
 	return nextInput
 end
 
-function Model:backward(input, gradOutput)
+function Model:backward(input, gradOutput, scale)
+	scale = scale or 1
 	local nextGradOutput = gradOutput
 	for i = #self.Layers, 2, -1 do
-		nextGradOutput = self.Layers[i]:backward(self.Layers[i - 1].output, nextGradOutput)
-		if torch.type(self.Layers[i]) ~= "ReLU" then
-			self.Layers[i]:updateParams(0.001)
-		end
+		nextGradOutput = self.Layers[i]:backward(self.Layers[i - 1].output, nextGradOutput, scale)
 	end
-	nextGradOutput = self.Layers[1]:backward(input, nextGradOutput)
+	nextGradOutput = self.Layers[1]:backward(input, nextGradOutput, scale)
 	return nextGradOutput
 end
 
