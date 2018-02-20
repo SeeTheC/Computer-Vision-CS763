@@ -1,0 +1,9 @@
+2018-02-20-18:28:24 [DEBUG] Initializing the Model
+2018-02-20-18:28:24 [DEBUG] Initializing Linear Layer
+2018-02-20-18:28:24 [DEBUG] Initializing BatchNormalization Layer
+2018-02-20-18:28:24 [DEBUG] Initializing ReLU Layer
+2018-02-20-18:28:24 [DEBUG] Initializing Linear Layer
+2018-02-20-18:28:24 [DEBUG] Initializing BatchNormalization Layer
+2018-02-20-18:28:24 [DEBUG] Initializing ReLU Layer
+2018-02-20-18:28:24 [DEBUG] Initializing Linear Layer
+2018-02-20-18:28:24 [DEBUG] Initializing Criterion Layer

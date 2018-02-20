@@ -1,0 +1,19 @@
+2018-02-20-18:27:05 [DEBUG] Initializing the Model
+2018-02-20-18:27:05 [DEBUG] Initializing Linear Layer
+2018-02-20-18:27:05 [DEBUG] Initializing BatchNormalization Layer
+2018-02-20-18:27:05 [DEBUG] Initializing ReLU Layer
+2018-02-20-18:27:05 [DEBUG] Initializing Linear Layer
+2018-02-20-18:27:05 [DEBUG] Initializing BatchNormalization Layer
+2018-02-20-18:27:05 [DEBUG] Initializing ReLU Layer
+2018-02-20-18:27:05 [DEBUG] Initializing Linear Layer
+2018-02-20-18:27:05 [DEBUG] Initializing Criterion Layer
+2018-02-20-18:27:05 [INFO ] 
+[
+	(1)	Linear: (11664 -> 50) with bias
+	(2)	BatchNormalization
+	(3)	ReLU
+	(4)	Linear: (50 -> 10) with bias
+	(5)	BatchNormalization
+	(6)	ReLU
+	(7)	Linear: (10 -> 6) with bias
+]
