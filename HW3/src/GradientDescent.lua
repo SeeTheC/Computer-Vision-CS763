@@ -20,22 +20,34 @@ function GradientDescent:train(input, target, batch_size)
 	local height = input:size(2)
 	local width = input:size(3)
 
+	local trainRatio = 0.8
+	local validationRatio = 1 - trainRatio
+	local trainInput = input:narrow(1, 1, n_images * trainRatio):resize(n_images * trainRatio, height * width)
+	local trainOutput = target:narrow(1, 1, n_images * trainRatio)
+	local validationInput = input:narrow(1, n_images * trainRatio + 1, n_images * validationRatio):resize(n_images * validationRatio, height * width)
+	local validationOutput = target:narrow(1, n_images * trainRatio + 1, n_images * validationRatio)
+
 	while true do
 		iteration = iteration + 1
+		local permutations = torch.randperm(trainInput:size(1)):long():narrow(1, 1, batch_size)
 
-		local batch_input = input:index(1, torch.randperm(input:size(1)):long()):narrow(1, 1, batch_size):resize(batch_size, height * width)
+		local batch_input = trainInput:index(1, permutations):resize(batch_size, height * width)
+		local batch_output = trainOutput:index(1, permutations)
+
 		local output = self.model:forward(batch_input)
-		local criterion_output = self.criterion:forward(output, target)
 
-		local criterion_gradInput = self.criterion:backward(output, target)
+		local criterion_output = self.criterion:forward(output, batch_output)
+		local criterion_gradInput = self.criterion:backward(output, batch_output)
+
 		self.model:backward(batch_input, criterion_gradInput, self.learningRate)
 
 		-- for i = 1, #self.model.Layers do
 		-- 	self.model.Layers[i]:resetGrads()
 		-- end
-
+		local _, predictionIndex = torch.max(self.model:forward(validationInput), 2)
+		local accuracy = torch.sum((predictionIndex:double() - validationOutput):apply(function(p) return (p == 0 and 1 or 0) end))
 		if iteration then
-			logger:info("Iteration: " .. iteration .. ", Loss: " .. criterion_output)
+			logger:info("Iteration: " .. iteration .. " Loss: " .. string.format("%0.5f", criterion_output) .. " Accuracy: " .. string.format("%0.3f", accuracy / validationOutput:size(1) * 100) .. "%")
 		end
 
 		if self.maxIterations > -1 and self.maxIterations <= iteration then
