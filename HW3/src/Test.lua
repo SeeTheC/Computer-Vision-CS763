@@ -106,6 +106,7 @@ function train()
 	local target = torch.load("../dataset/Train/labels.bin"):double()
 	target = target + 1
 
+	input = input / 255
 	local mean = torch.mean(input, 1)
 	local stddev = torch.std(input, 1)
 
@@ -115,8 +116,8 @@ function train()
 
 	local mlp
 
-	local newModel = true
-	if newModel then
+	local model = "MLP_2018-02-21-09:00:29.bin"
+	if model == "" then
 		mlp = Model()
 		mlp:addLayer(Linear(11664, 50))
 		mlp:addLayer(BatchNormalization())
@@ -126,14 +127,13 @@ function train()
 		mlp:addLayer(ReLU())
 		mlp:addLayer(Linear(10, 6))
 	else
-		local modelFile = "MLP_2018-02-20-16:22:34.bin"
-		mlp = torch.load(modelFile)
-		logger:info("Model loaded from file " .. modelFile)
+		mlp = torch.load(model)
+		logger:info("Model loaded from file " .. model)
 	end
 
-	local learningRate = 1e-1
-	local maxIterations = 8500
-	local batchSize = 729
+	local learningRate = 1e-2
+	local maxIterations = 500
+	local batchSize = 250
 
 	local criterion = Criterion()
 
