@@ -16,7 +16,7 @@ function Linear:__init(n_input, n_output)
 	-- They will be replaced by the calculated values
 	self.output = torch.Tensor()
 	self.gradW = torch.zeros(n_output, n_input)
-	self.gradB = torch.Tensor(n_output)
+	self.gradB = torch.zeros(n_output)
 	self.gradInput = torch.Tensor()
 end
 
@@ -34,8 +34,8 @@ function Linear:forward(input)
 	return self.output
 end
 
-function Linear:backward(input, gradOutput, scale)
-	scale = scale or 1
+function Linear:backward(input, gradOutput, learningRate)
+	learningRate = learningRate or 1
 
 	local nElement = self.gradInput:nElement()
 	self.gradInput:resizeAs(input)
@@ -45,25 +45,29 @@ function Linear:backward(input, gradOutput, scale)
 
 	self.gradInput = gradOutput * self.W
 
-	self.gradW = scale * gradOutput:t() * input
+	local gradW = gradOutput:t() * input
 
-	self.gradB = scale * torch.sum(gradOutput:t(), 2)
+	local gradB = torch.sum(gradOutput:t(), 2)
 
-	self:updateParams()
+	self:updateParams(learningRate, gradW, gradB)
 	return self.gradInput
 end
 
 function Linear:resetGrads()
 	self.gradW = torch.zeros(self.n_output, self.n_input)
-	self.gradB = torch.Tensor(self.n_output)
+	self.gradB = torch.zeros(self.n_output)
 	self.gradInput = torch.Tensor()
 end
 
-function Linear:updateParams()
-	self.W = self.W - self.gradW
-	self.B = self.B - self.gradB
+function Linear:updateParams(learningRate, gradW, gradB)
+	local updateW = learningRate * (0.1 * gradW + 0.9 * self.gradW)
+	local updateB = learningRate * (0.1 * gradB + 0.9 * self.gradB)
+	self.W = self.W - updateW
+	self.B = self.B - updateB
+	self.gradW = gradW
+	self.gradB = gradB
 end
 
 function Linear:__tostring__()
-	return torch.type(self) .. string.format('(%d -> %d)', self.n_input, self.n_output)
+	return torch.type(self) .. string.format(': (%d -> %d)', self.n_input, self.n_output) .. " with bias"
 end

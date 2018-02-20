@@ -3,7 +3,7 @@ require "Logger"
 local BatchNormalization = torch.class("BatchNormalization")
 
 function BatchNormalization:__init()
-	logger:debug("Initializing Linear Layer")
+	logger:debug("Initializing BatchNormalization Layer")
 	self.output = torch.Tensor()
 end
 
@@ -32,4 +32,8 @@ end
 
 function BatchNormalization:resetGrads()
 	return
+end
+
+function BatchNormalization:__tostring__()
+	return torch.type(self)
 end

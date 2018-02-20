@@ -106,7 +106,6 @@ function train()
 	local target = torch.load("../dataset/Train/labels.bin"):double()
 	target = target + 1
 
-	input = BatchNormalization():forward(input)
 	local mean = torch.mean(input, 1)
 	local stddev = torch.std(input, 1)
 
@@ -114,21 +113,40 @@ function train()
 		input[i] = input[i] - mean
 	end
 
-	local mlp = Model()
-	mlp:addLayer(Linear(11664, 50))
-	mlp:addLayer(BatchNormalization())
-	mlp:addLayer(ReLU())
-	mlp:addLayer(Linear(50, 10))
-	mlp:addLayer(BatchNormalization())
-	mlp:addLayer(ReLU())
-	mlp:addLayer(Linear(10, 6))
+	local mlp
+
+	local newModel = true
+	if newModel then
+		mlp = Model()
+		mlp:addLayer(Linear(11664, 50))
+		mlp:addLayer(BatchNormalization())
+		mlp:addLayer(ReLU())
+		mlp:addLayer(Linear(50, 10))
+		mlp:addLayer(BatchNormalization())
+		mlp:addLayer(ReLU())
+		mlp:addLayer(Linear(10, 6))
+	else
+		local modelFile = "MLP_2018-02-20-16:22:34.bin"
+		mlp = torch.load(modelFile)
+		logger:info("Model loaded from file " .. modelFile)
+	end
+
+	local learningRate = 1e-1
+	local maxIterations = 8500
+	local batchSize = 729
 
 	local criterion = Criterion()
 
-	local trainer = GradientDescent(mlp, criterion, 1e-2, 50000)
-	trainer:train(input, target, 729)--input:size(1))
+	logger:info(mlp)
+	logger:info("Learning Rate = " .. learningRate)
+	logger:info("Iterations = " .. maxIterations)
+	logger:info("Batch Size = " .. batchSize)
+
+	local trainer = GradientDescent(mlp, criterion, learningRate, maxIterations)
+	trainer:train(input, target, batchSize)
 
 	local filename = os.date("MLP_%Y-%m-%d-%X.bin")
+	logger:info("Saving the model as ".. filename)
 	torch.save(filename, mlp)
 end
 
