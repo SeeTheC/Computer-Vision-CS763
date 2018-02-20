@@ -60,12 +60,10 @@ function Linear:resetGrads()
 end
 
 function Linear:updateParams(learningRate, gradW, gradB)
-	local updateW = learningRate * (0.1 * gradW + 0.9 * self.gradW)
-	local updateB = learningRate * (0.1 * gradB + 0.9 * self.gradB)
-	self.W = self.W - updateW
-	self.B = self.B - updateB
-	self.gradW = gradW
-	self.gradB = gradB
+	self.gradW = learningRate * gradW + 0.9 * self.gradW
+	self.gradB = learningRate * gradB + 0.9 * self.gradB
+	self.W = self.W - self.gradW
+	self.B = self.B - self.gradB
 end
 
 function Linear:__tostring__()
