@@ -101,6 +101,23 @@ function rmse(m1, m2)
 	return torch.sqrt(torch.sum(torch.pow(m1 - m2, 2)))
 end
 
+function predict(model)
+	if model == nil then
+		logger:error("No model given")
+		error()
+	end
+	local model = torch.load(model)
+	local testData = torch.load("../dataset/Test/test.bin"):double()
+	local output = model:forward(testData:resize(testData:size(1), testData:size(2) * testData:size(3)))
+	local value, index = torch.max(output, 2)
+	local indexfile = io.open(os.date("prediction_index_%Y-%m-%d-%X.csv"), "w")
+	indexfile:write("id,label\n")
+	for i = 1, value:size(1) do
+		indexfile:write(i - 1 .. "," .. index[i][1] - 1 .. "\n")
+	end
+	io.close(indexfile)
+end
+
 function train()
 	local input = torch.load("../dataset/Train/data.bin"):double()
 	local target = torch.load("../dataset/Train/labels.bin"):double()
@@ -116,7 +133,7 @@ function train()
 
 	local mlp
 
-	local model = "MLP_2018-02-21-09:00:29.bin"
+	local model = ""
 	if model == "" then
 		mlp = Model()
 		mlp:addLayer(Linear(11664, 50))
@@ -131,8 +148,8 @@ function train()
 		logger:info("Model loaded from file " .. model)
 	end
 
-	local learningRate = 1e-2
-	local maxIterations = 500
+	local learningRate = 1.5
+	local maxIterations = 6000
 	local batchSize = 250
 
 	local criterion = Criterion()
@@ -148,9 +165,10 @@ function train()
 	local filename = os.date("MLP_%Y-%m-%d-%X.bin")
 	logger:info("Saving the model as ".. filename)
 	torch.save(filename, mlp)
+	predict(filename)
 end
-
 
 -- model1()
 -- model2()
-train()
+-- train()
+predict("MLP_2018-02-21-10:38:25.bin")
