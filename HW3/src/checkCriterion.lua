@@ -1,4 +1,6 @@
 require "xlua"
+require "Criterion"
+
 cmd = torch.CmdLine()
 
 local cmd = torch.CmdLine()
@@ -13,4 +15,11 @@ if not opt then
    opt = cmd:parse(arg or {})
 end
 
---print(input.fields)
+local input = torch.load(opt["i"])
+local target = torch.load(opt["t"])
+
+local criterion = Criterion()
+local output = criterion:forward(input, target)
+local gradOutput = criterion:backward(input, target)
+
+torch.save(opt["og"], gradOutput)

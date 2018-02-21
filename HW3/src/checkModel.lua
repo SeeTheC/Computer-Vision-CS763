@@ -68,6 +68,17 @@ for line in io.lines(opt["config"]) do
    end
    lno=lno+1;
 end
-print(weightPath);
-print(biasPath);
+-- print(weightPath);
+-- print(biasPath);
+local input = torch.read(opt["i"])
+local gradInput = torch.read(opt["ig"])
 
+local output = mlp:forward(input)
+local gradOutput = mlp:backward(input, gradInput)
+local gradW = mlp.Layers[1].gradW
+local gradB = mlp.Layers[1].gradB
+
+torch.save(opt["o"], output)
+torch.save(opt["og"], gradOutput)
+torch.save(opt["ow"], gradW)
+torch.save(opt["ob"], gradB)

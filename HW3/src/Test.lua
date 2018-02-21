@@ -164,20 +164,26 @@ function train()
 	logger:info("Iterations = " .. maxIterations)
 	logger:info("Batch Size = " .. batchSize)
 
-	local x = mlp:forward(input:narrow(1, 1, 2))
-	local loss = criterion:forward(x, target:narrow(1, 1, 2))
-	local y = criterion:backward(x, target:narrow(1, 1, 2))
-	mlp:backward(input:narrow(1, 1, 2), y)
+	-- local x = mlp:forward(input:narrow(1, 1, 2))
+	-- local loss = criterion:forward(x, target:narrow(1, 1, 2))
+	-- local y = criterion:backward(x, target:narrow(1, 1, 2))
+	-- mlp:backward(input:narrow(1, 1, 2), y)
 
 	-- print(loss)
 
-	-- local trainer = GradientDescent(mlp, criterion, learningRate, maxIterations)
-	-- trainer:train(input, target, batchSize)
-  --
-	-- local filename = os.date("MLP_%Y-%m-%d-%X.bin")
-	-- logger:info("Saving the model as ".. filename)
-	-- torch.save(filename, mlp)
-	-- predict(filename)
+	local trainer = GradientDescent(mlp, criterion, learningRate, maxIterations)
+	trainer:train(input, target, batchSize)
+
+	local saveModel = {}
+	table.insert(saveModel,mlp);
+	table.insert(saveModel,criterion);
+	table.insert(saveModel,learningRate);
+	table.insert(saveModel,maxIterations);
+  
+	local filename = os.date("MLP_%Y-%m-%d-%X.bin")
+	logger:info("Saving the model as ".. filename)
+	torch.save(filename, saveModel)
+	predict(filename)
 end
 
 -- model1()
