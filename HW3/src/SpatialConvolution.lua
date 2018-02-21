@@ -4,6 +4,7 @@ local SpatialConvolution = torch.class('SpatialConvolution')
 
 
 function SpatialConvolution:__init(nInputPlane, nOutputPlane, kW, kH, dW, dH, padW, padH)
+	logger:debug("Initializing SpatialConvolution Layer")
 	dW = dW or 1
 	dH = dH or 1
 
@@ -17,47 +18,16 @@ function SpatialConvolution:__init(nInputPlane, nOutputPlane, kW, kH, dW, dH, pa
 	self.padW = padW or 0
 	self.padH = padH or self.padW
 
-	self.weight = torch.Tensor(nOutputPlane, nInputPlane*kH*kW)
-	self.bias = torch.Tensor(nOutputPlane)
+	local stdv = 1 / math.sqrt(self.kW*self.kH*self.nInputPlane)
+	self.weight = torch.Tensor(nOutputPlane, nInputPlane*kH*kW):uniform(-stdv, stdv)
+	self.bias = torch.Tensor(nOutputPlane):uniform(-stdv, stdv)
 	self.gradWeight = torch.Tensor(nOutputPlane, nInputPlane*kH*kW)
 	self.gradBias = torch.Tensor(nOutputPlane)
-
-end
-
-function SpatialConvolution:forward1(input)
-	rows=input:size(2)
-	cols=input:size(3)
-	filerSize=(self.kW)*(self.kH)
-	numOfFilters=self.weight:size(1)
-	local noutputRow=math.floor((rows-self.kW)/self.dW)+1
-	local noutputCol=math.floor((cols-self.kH)/self.dH)+1
-	local output=torch.Tensor(self.nOutputPlane,noutputRow,noutputCol)
-	--padding the image
-	--Performing Convolution with strides dW and dH
-	for i=1,rows-self.kH+1 do
-		for j=1,cols-self.kW+1 do
-			for op=1,self.nOutputPlane do
-				local temp=0
-				local k=1 -- for a particular wt column
-				for ip=1,self.nInputPlane do
-					for r=i,self.kH+i-1 do
-						for c=j,self.kW+j-1 do
-							temp=temp+input[ip][r][c]*self.weight[op][k]
-							k=k+1
-						end
-					end
-				output[op][i][j]=temp+self.bias[op]
-				end
-			end
-			j=j+self.dW-1--to increase the step size for strides
-		end
-		i=i+self.dH-1
-	end
-	return output
 end
 
 function SpatialConvolution:forward(input)
 	--padding the image
+	local n_images = input:size(1)
 	local rows=input:size(2)
 	local cols=input:size(3)
 	local sFilter=self.kW*self.kH--for single input layer
@@ -65,29 +35,34 @@ function SpatialConvolution:forward(input)
 	numOfFilters=self.weight:size(1)
 	local nRow=math.floor((rows-self.kW)/self.dW)+1
 	local nCol=math.floor((cols-self.kH)/self.dH)+1
-	local inputVector=torch.Tensor(filterSize,nRow*nCol)
-	local outputVector=torch.Tensor(numOfFilters,nRow*nCol)
-	local output=torch.Tensor(self.nOutputPlane,nRow,nCol)
-	--Performing Convolution with strides dW and dH
-	local k=1
-	for i=1,rows-self.kH+1,self.dH do
-		for j=1,cols-self.kW+1,self.dW do
-			for nIP=1,self.nInputPlane do
-				--print(i)
-				inputVector[{{(nIP-1)*sFilter+1,nIP*sFilter},{k}}]=input[{{nIP},{i,i+self.kH-1},{j,j+self.kW-1}}]:reshape(sFilter,1)
+	local finalOutput = torch.Tensor(n_images, self.nOutputPlane, nRow, nCol)
+	for img = 1, n_images do
+		local inputVector=torch.Tensor(filterSize,nRow*nCol)
+		local outputVector=torch.Tensor(numOfFilters,nRow*nCol)
+		local output=torch.Tensor(self.nOutputPlane,nRow,nCol)
+		--Performing Convolution with strides dW and dH
+		local k=1
+		for i=1,rows-self.kH+1,self.dH do
+			for j=1,cols-self.kW+1,self.dW do
+				for nIP=1,self.nInputPlane do
+					--print(i)
+					inputVector[{{(nIP-1)*sFilter+1,nIP*sFilter},{k}}]=input[{{nIP},{i,i+self.kH-1},{j,j+self.kW-1}}]:reshape(sFilter,1)
+				end
+				k=k+1
 			end
-			k=k+1
 		end
+		outputVector=self.weight*inputVector
+		for i=1,self.nOutputPlane do
+			output[{{i},{1,nRow},{1,nCol}}]=outputVector[i]:reshape(nRow,nCol)+self.bias[i]
+		end
+		finalOutput[img] = output
 	end
-	outputVector=self.weight*inputVector
-	for i=1,self.nOutputPlane do
-		output[{{i},{1,nRow},{1,nCol}}]=outputVector[i]:reshape(nRow,nCol)+self.bias[i]
-	end
-	return output
+	self.output = finalOutput
+	return self.output
 end
 
 
-function SpatialConvolution:backward(input, gradOutput)
+function SpatialConvolution:backward(input, gradOutput, learningRate)
 	--padding the image
 	--here gOutput is acting as weight in forward pass
 	local rows=input:size(2)
@@ -159,5 +134,15 @@ function SpatialConvolution:backward(input, gradOutput)
 		self.gradBias[i] = torch.sum(gradOutput[{{i},{1,grows},{1,gcols}}])
 	end
 	--self.gradBias = torch.sum(gradOutput_T, 2)
+	self:updateParams(learningRate, self.gradWeight, self.gradBias)
 	return gradInput:t():reshape(self.nInputPlane,rows,cols)
+end
+
+function SpatialConvolution:updateParams(learningRate, gradW, gradB)
+	self.weight = self.weight - learningRate * gradW
+	self.bias = self.bias - learningRate * gradB
+end
+
+function SpatialConvolution:__tostring__()
+	return string.format("%s with %d input planes, %d output planes, kernel of size %d x %d, with stride %d x %d", torch.type(self), self.nInputPlane, self.nOutputPlane, self.kW, self.kH, self.dW, self.dH)
 end
