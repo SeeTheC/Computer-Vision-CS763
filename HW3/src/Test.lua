@@ -5,6 +5,7 @@ require "Criterion"
 require "Model"
 require "GradientDescent"
 require "BatchNormalization"
+require "SpatialConvolution"
 
 local function equal(matrix1, matrix2)
 	if (torch.sum((matrix1 - matrix2)) < 1e-9) then
@@ -136,39 +137,50 @@ function train()
 	local model = ""
 	if model == "" then
 		mlp = Model()
-		mlp:addLayer(Linear(11664, 50))
-		mlp:addLayer(BatchNormalization())
-		mlp:addLayer(ReLU())
-		mlp:addLayer(Linear(50, 10))
-		mlp:addLayer(BatchNormalization())
-		mlp:addLayer(ReLU())
-		mlp:addLayer(Linear(10, 6))
+		mlp:addLayer(SpatialConvolution(1, 2, 99, 99))
+		-- mlp:addLayer(BatchNormalization())
+		-- mlp:addLayer(ReLU())
+		-- mlp:addLayer(SpatialConvolution(2, 2, 30, 30))
+		-- mlp:addLayer(BatchNormalization())
+		-- mlp:addLayer(ReLU())
+		-- mlp:addLayer(Linear(5000, 10))
+		-- mlp:addLayer(BatchNormalization())
+		-- mlp:addLayer(ReLU())
+		mlp:addLayer(Linear(200, 6))
 	else
 		mlp = torch.load(model)
 		logger:info("Model loaded from file " .. model)
 	end
 
-	local learningRate = 1.5
-	local maxIterations = 6000
-	local batchSize = 250
+	local learningRate = 1e-5
+	local maxIterations = 200
+	local batchSize = 100
 
 	local criterion = Criterion()
+	local testData = torch.load("../dataset/Test/test.bin"):double()
 
 	logger:info(mlp)
 	logger:info("Learning Rate = " .. learningRate)
 	logger:info("Iterations = " .. maxIterations)
 	logger:info("Batch Size = " .. batchSize)
 
-	local trainer = GradientDescent(mlp, criterion, learningRate, maxIterations)
-	trainer:train(input, target, batchSize)
+	local x = mlp:forward(input:narrow(1, 1, 2))
+	local loss = criterion:forward(x, target:narrow(1, 1, 2))
+	local y = criterion:backward(x, target:narrow(1, 1, 2))
+	mlp:backward(input:narrow(1, 1, 2), y)
 
-	local filename = os.date("MLP_%Y-%m-%d-%X.bin")
-	logger:info("Saving the model as ".. filename)
-	torch.save(filename, mlp)
-	predict(filename)
+	-- print(loss)
+
+	-- local trainer = GradientDescent(mlp, criterion, learningRate, maxIterations)
+	-- trainer:train(input, target, batchSize)
+  --
+	-- local filename = os.date("MLP_%Y-%m-%d-%X.bin")
+	-- logger:info("Saving the model as ".. filename)
+	-- torch.save(filename, mlp)
+	-- predict(filename)
 end
 
 -- model1()
 -- model2()
--- train()
-predict("MLP_2018-02-21-10:38:25.bin")
+train()
+-- predict("MLP_2018-02-21-10:38:25.bin")

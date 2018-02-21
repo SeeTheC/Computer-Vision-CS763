@@ -21,11 +21,16 @@ function Linear:__init(n_input, n_output)
 end
 
 function Linear:forward(input)
-	local nElement = self.output:nElement()
 	local batch_size = input:size(1)
-	self.output:resize(batch_size, self.n_output)
-	if self.output:nElement() ~= nElement then
-		self.output:zero()
+	if input:nDimension() == 3 then
+		self.inputHeight = input:size(2)
+		self.inputWidth = input:size(3)
+		input:resize(batch_size, self.inputHeight * self.inputWidth)
+	elseif input:nDimension() == 4 then
+		self.inputLayers = input:size(2)
+		self.inputHeight = input:size(3)
+		self.inputWidth = input:size(4)
+		input:resize(batch_size, self.inputLayers * self.inputHeight * self.inputWidth)
 	end
 	self.output = torch.zeros(batch_size, self.n_output)
 	for i = 1, batch_size do
@@ -37,13 +42,15 @@ end
 function Linear:backward(input, gradOutput, learningRate)
 	learningRate = learningRate or 1
 
-	local nElement = self.gradInput:nElement()
-	self.gradInput:resizeAs(input)
-	if self.gradInput:nElement() ~= nElement then
-		self.gradInput:zero()
+	logger:debug("Input Dimensions: " .. input:nDimension())
+	if input:nDimension() == 2 then
+		self.gradInput = gradOutput * self.W
+	elseif input:nDimension() == 3 then
+		self.gradInput = (gradOutput * self.W):resize(input:size(1), self.inputHeight, self.inputWidth)
+	elseif input:nDimension() == 4 then
+		self.gradInput = (gradOutput * self.W):resize(input:size(1), self.inputLayers, self.inputHeight, self.inputWidth)
 	end
 
-	self.gradInput = gradOutput * self.W
 
 	local gradW = gradOutput:t() * input
 
