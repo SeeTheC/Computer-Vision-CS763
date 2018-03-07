@@ -38,3 +38,7 @@ end
 function ReLU:resetGrads()
 	self.gradInput = torch.Tensor()
 end
+
+function ReLU:__tostring__()
+	return torch.type(self)
+end

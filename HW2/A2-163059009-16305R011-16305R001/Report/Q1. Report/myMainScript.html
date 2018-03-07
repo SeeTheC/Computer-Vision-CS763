@@ -1,0 +1,245 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Homography</title><meta name="generator" content="MATLAB 8.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-02-04"><meta name="DC.source" content="myMainScript.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Homography</h1><!--introduction--><pre>Assignment2-1
+Rollno: 163059009, 16305R011, 16305R001</pre><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Init</a></li><li><a href="#2">0) Data Points</a></li><li><a href="#3">1) Homography</a></li><li><a href="#4">2) Estimation of dimension</a></li><li><a href="#5">2.1) Marking of points and length</a></li></ul></div><h2>Init<a name="1"></a></h2><pre class="codeinput">file=<span class="string">'../input/wembley.jpeg'</span>;
+img=imread(file);
+dim=size(img);
+format <span class="string">shortG</span>
+</pre><h2>0) Data Points<a name="2"></a></h2><p>We have take 4 datapoints for our dimension Calculation.</p><pre class="codeinput">tic;
+<span class="comment">%datatset : 4 points</span>
+pointsI1=[
+          676,846,1  ; <span class="comment">%1</span>
+          535,958,1  ; <span class="comment">%2</span>
+          720,1058,1 ; <span class="comment">%3</span>
+          556,1124,1 ; <span class="comment">%4</span>
+
+        ];
+
+pointsI2=[0,0,1  ; <span class="comment">%1</span>
+          44,0,1 ; <span class="comment">%3</span>
+          0,18,1 ; <span class="comment">%2</span>
+          44,18,1; <span class="comment">%4</span>
+         ];
+
+img1=img;
+noOfPoints=size(pointsI1,1);
+<span class="keyword">for</span> i=1:noOfPoints
+    img1 = insertMarker(img1,[pointsI1(i,2),pointsI1(i,1)],<span class="string">'x'</span>,<span class="string">'color'</span>,<span class="string">'red'</span>,<span class="string">'size'</span>,15);
+    img1= insertText(img1,[pointsI1(i,2)+3,pointsI1(i,1)+3], num2str(i), <span class="string">'FontSize'</span>,18,<span class="string">'BoxColor'</span>, <span class="string">'red'</span>);
+<span class="keyword">end</span>
+
+
+figure(<span class="string">'name'</span>,<span class="string">'original image'</span>);
+imshow(img1);
+impixelinfo;
+title(<span class="string">'\fontsize{10}{\color{magenta}original image}'</span>);
+axis <span class="string">tight</span>,axis <span class="string">on</span>;
+</pre><pre class="codeoutput">Warning: Image is too big to fit on screen; displaying at 67% 
+</pre><img vspace="5" hspace="5" src="myMainScript_01.png" alt=""> <h2>1) Homography<a name="3"></a></h2><pre class="codeinput">[H]=homography(pointsI1,pointsI2);
+fprintf(<span class="string">'**Projection Matrix H:\n'</span>);
+disp(H);
+</pre><pre class="codeoutput">**Projection Matrix H:
+      0.57641     -0.11963      -288.44
+      -0.1822     -0.22937       317.21
+   -0.0051584  -0.00040908            1
+
+</pre><h2>2) Estimation of dimension<a name="4"></a></h2><p>On calculation of dimension, we get 118.43yd * 75.14yd Actual dimension is 115yd * 75yd (src: Google)</p><pre class="codeinput">halfGroundI1= [  668,372,1 ; <span class="comment">%1</span>
+                 470,702,1 ; <span class="comment">%2</span>
+                 808,1024,1; <span class="comment">%3</span>
+                 516,1140,1; <span class="comment">%4</span>
+                ];
+halfGroundI2=(H*halfGroundI1')';
+halfGroundI2(:,1)=halfGroundI2(:,1)./halfGroundI2(:,3);
+halfGroundI2(:,2)=halfGroundI2(:,2)./halfGroundI2(:,3);
+halfGroundI2(:,3)=1;
+
+groundWidth=sqrt(sum((halfGroundI2(3,:)-halfGroundI2(4,:)).^2));
+groundHeight=sqrt(sum((halfGroundI2(2,:)-halfGroundI2(4,:)).^2)) * 2 ;
+
+fprintf(<span class="string">'** Ground Height: %f yard\n'</span>,groundHeight);
+fprintf(<span class="string">'** Ground Width: %f yard\n'</span>,groundWidth);
+</pre><pre class="codeoutput">** Ground Height: 118.435186 yard
+** Ground Width: 75.140124 yard
+</pre><h2>2.1) Marking of points and length<a name="5"></a></h2><pre class="codeinput">img1=img;
+noOfPoints=size(halfGroundI1,1);
+<span class="keyword">for</span> i=1:noOfPoints
+    img1 = insertMarker(img1,[halfGroundI1(i,2),halfGroundI1(i,1)],<span class="string">'x'</span>,<span class="string">'color'</span>,<span class="string">'red'</span>,<span class="string">'size'</span>,15);
+    img1= insertText(img1,[halfGroundI1(i,2)+3,halfGroundI1(i,1)+3], num2str(i), <span class="string">'FontSize'</span>,18,<span class="string">'BoxColor'</span>, <span class="string">'magenta'</span>);
+<span class="keyword">end</span>
+
+img1=insertText(img1,[1163,637], <span class="string">'75.14 yard'</span>, <span class="string">'FontSize'</span>,18,<span class="string">'BoxColor'</span>, <span class="string">'green'</span>);
+img1=insertText(img1,[706,427], <span class="string">'118.43 yard'</span>, <span class="string">'FontSize'</span>,18,<span class="string">'BoxColor'</span>, <span class="string">'green'</span>);
+
+<span class="comment">% Marking Showing image</span>
+figure(<span class="string">'name'</span>,<span class="string">'Result'</span>);
+imshow(img1);
+impixelinfo;
+title(<span class="string">'\fontsize{10}{\color{magenta} Result}'</span>);
+axis <span class="string">tight</span>,axis <span class="string">on</span>;
+
+<span class="comment">%</span>
+line([1142,378], [501,427], <span class="string">'Color'</span>, <span class="string">'magenta'</span>, <span class="string">'LineWidth'</span>, 3);
+line([1176,1080], [520,821], <span class="string">'Color'</span>, <span class="string">'magenta'</span>, <span class="string">'LineWidth'</span>, 3);
+</pre><pre class="codeoutput">Warning: Image is too big to fit on screen; displaying at 67% 
+</pre><img vspace="5" hspace="5" src="myMainScript_02.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Homography
+%  Assignment2-1 
+% Rollno: 163059009, 16305R011, 16305R001 
+
+%% Init
+file='../input/wembley.jpeg';
+img=imread(file); 
+dim=size(img);
+format shortG
+%% 0) Data Points
+% We have take 4 datapoints for our dimension Calculation. 
+
+tic;
+%datatset : 4 points
+pointsI1=[
+          676,846,1  ; %1
+          535,958,1  ; %2
+          720,1058,1 ; %3
+          556,1124,1 ; %4
+          
+        ];
+
+pointsI2=[0,0,1  ; %1
+          44,0,1 ; %3                    
+          0,18,1 ; %2
+          44,18,1; %4
+         ];
+
+img1=img;
+noOfPoints=size(pointsI1,1);        
+for i=1:noOfPoints
+    img1 = insertMarker(img1,[pointsI1(i,2),pointsI1(i,1)],'x','color','red','size',15);
+    img1= insertText(img1,[pointsI1(i,2)+3,pointsI1(i,1)+3], num2str(i), 'FontSize',18,'BoxColor', 'red');
+end
+
+
+figure('name','original image');
+imshow(img1);
+impixelinfo;
+title('\fontsize{10}{\color{magenta}original image}');
+axis tight,axis on;
+
+
+%% 1) Homography
+[H]=homography(pointsI1,pointsI2);
+fprintf('**Projection Matrix H:\n');
+disp(H);
+
+%% 2) Estimation of dimension
+% On calculation of dimension, we get 118.43yd * 75.14yd
+% Actual dimension is 115yd * 75yd (src: Google)
+
+halfGroundI1= [  668,372,1 ; %1
+                 470,702,1 ; %2
+                 808,1024,1; %3
+                 516,1140,1; %4
+                ];            
+halfGroundI2=(H*halfGroundI1')';
+halfGroundI2(:,1)=halfGroundI2(:,1)./halfGroundI2(:,3);
+halfGroundI2(:,2)=halfGroundI2(:,2)./halfGroundI2(:,3);
+halfGroundI2(:,3)=1;
+
+groundWidth=sqrt(sum((halfGroundI2(3,:)-halfGroundI2(4,:)).^2));
+groundHeight=sqrt(sum((halfGroundI2(2,:)-halfGroundI2(4,:)).^2)) * 2 ;
+
+fprintf('** Ground Height: %f yard\n',groundHeight);
+fprintf('** Ground Width: %f yard\n',groundWidth);
+%% 2.1) Marking of points and length
+img1=img;
+noOfPoints=size(halfGroundI1,1);        
+for i=1:noOfPoints
+    img1 = insertMarker(img1,[halfGroundI1(i,2),halfGroundI1(i,1)],'x','color','red','size',15);
+    img1= insertText(img1,[halfGroundI1(i,2)+3,halfGroundI1(i,1)+3], num2str(i), 'FontSize',18,'BoxColor', 'magenta');
+end
+
+img1=insertText(img1,[1163,637], '75.14 yard', 'FontSize',18,'BoxColor', 'green');
+img1=insertText(img1,[706,427], '118.43 yard', 'FontSize',18,'BoxColor', 'green');
+
+% Marking Showing image
+figure('name','Result');
+imshow(img1);
+impixelinfo;
+title('\fontsize{10}{\color{magenta} Result}');
+axis tight,axis on;
+
+%
+line([1142,378], [501,427], 'Color', 'magenta', 'LineWidth', 3);
+line([1176,1080], [520,821], 'Color', 'magenta', 'LineWidth', 3);
+
+
+
+
+##### SOURCE END #####
+--></body></html>

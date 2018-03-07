@@ -1,2 +1,4 @@
 dataset/*
 samples/*
+*bin
+*log

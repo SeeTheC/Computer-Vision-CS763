@@ -53,3 +53,13 @@ function Model:clearGradParam()
 		self.Layers[i]:resetGrads()
 	end
 end
+
+function Model:__tostring__()
+	local string = "Model\n"
+	string = string .. "[\n"
+	for i = 1, #self.Layers do
+		string = string .. "\t" .. string.format("(%d)\t-->\t%s", i, self.Layers[i]) .. "\n"
+	end
+	string = string .. "]"
+	return string
+end

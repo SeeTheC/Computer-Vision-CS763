@@ -5,6 +5,7 @@ require "Criterion"
 require "Model"
 require "GradientDescent"
 require "BatchNormalization"
+require "SpatialConvolution"
 
 local function equal(matrix1, matrix2)
 	if (torch.sum((matrix1 - matrix2)) < 1e-9) then
@@ -101,12 +102,29 @@ function rmse(m1, m2)
 	return torch.sqrt(torch.sum(torch.pow(m1 - m2, 2)))
 end
 
+function predict(model)
+	if model == nil then
+		logger:error("No model given")
+		error()
+	end
+	local model = torch.load(model)
+	local testData = torch.load("../dataset/Test/test.bin"):double()
+	local output = model:forward(testData:resize(testData:size(1), testData:size(2) * testData:size(3)))
+	local value, index = torch.max(output, 2)
+	local indexfile = io.open(os.date("prediction_index_%Y-%m-%d-%X.csv"), "w")
+	indexfile:write("id,label\n")
+	for i = 1, value:size(1) do
+		indexfile:write(i - 1 .. "," .. index[i][1] - 1 .. "\n")
+	end
+	io.close(indexfile)
+end
+
 function train()
 	local input = torch.load("../dataset/Train/data.bin"):double()
 	local target = torch.load("../dataset/Train/labels.bin"):double()
 	target = target + 1
 
-	input = BatchNormalization():forward(input)
+	input = input / 255
 	local mean = torch.mean(input, 1)
 	local stddev = torch.std(input, 1)
 
@@ -114,25 +132,61 @@ function train()
 		input[i] = input[i] - mean
 	end
 
-	local mlp = Model()
-	mlp:addLayer(Linear(11664, 50))
-	mlp:addLayer(BatchNormalization())
-	mlp:addLayer(ReLU())
-	mlp:addLayer(Linear(50, 10))
-	mlp:addLayer(BatchNormalization())
-	mlp:addLayer(ReLU())
-	mlp:addLayer(Linear(10, 6))
+	local mlp
+
+	local model = ""
+	if model == "" then
+		mlp = Model()
+		mlp:addLayer(SpatialConvolution(1, 2, 99, 99))
+		-- mlp:addLayer(BatchNormalization())
+		-- mlp:addLayer(ReLU())
+		-- mlp:addLayer(SpatialConvolution(2, 2, 30, 30))
+		-- mlp:addLayer(BatchNormalization())
+		-- mlp:addLayer(ReLU())
+		-- mlp:addLayer(Linear(5000, 10))
+		-- mlp:addLayer(BatchNormalization())
+		-- mlp:addLayer(ReLU())
+		mlp:addLayer(Linear(200, 6))
+	else
+		mlp = torch.load(model)
+		logger:info("Model loaded from file " .. model)
+	end
+
+	local learningRate = 1e-5
+	local maxIterations = 200
+	local batchSize = 100
 
 	local criterion = Criterion()
+	local testData = torch.load("../dataset/Test/test.bin"):double()
 
-	local trainer = GradientDescent(mlp, criterion, 1e-2, 50000)
-	trainer:train(input, target, 729)--input:size(1))
+	logger:info(mlp)
+	logger:info("Learning Rate = " .. learningRate)
+	logger:info("Iterations = " .. maxIterations)
+	logger:info("Batch Size = " .. batchSize)
 
+	-- local x = mlp:forward(input:narrow(1, 1, 2))
+	-- local loss = criterion:forward(x, target:narrow(1, 1, 2))
+	-- local y = criterion:backward(x, target:narrow(1, 1, 2))
+	-- mlp:backward(input:narrow(1, 1, 2), y)
+
+	-- print(loss)
+
+	local trainer = GradientDescent(mlp, criterion, learningRate, maxIterations)
+	trainer:train(input, target, batchSize)
+
+	local saveModel = {}
+	table.insert(saveModel,mlp);
+	table.insert(saveModel,criterion);
+	table.insert(saveModel,learningRate);
+	table.insert(saveModel,maxIterations);
+  
 	local filename = os.date("MLP_%Y-%m-%d-%X.bin")
-	torch.save(filename, mlp)
+	logger:info("Saving the model as ".. filename)
+	torch.save(filename, saveModel)
+	predict(filename)
 end
-
 
 -- model1()
 -- model2()
 train()
+-- predict("MLP_2018-02-21-10:38:25.bin")

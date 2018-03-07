@@ -103,4 +103,4 @@ function Logger:log(message)
 end
 
 -- Initialize Logger object
-logger = Logger.new(DEBUG, true)
+logger = Logger.new(DEBUG, false)
