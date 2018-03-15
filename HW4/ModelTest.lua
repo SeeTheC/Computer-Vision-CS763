@@ -39,20 +39,18 @@ local criterion = Criterion()
 local epochs = 1e3
 local learningRate = 1e-5
 local accuracyAfterEpochs = 1e2
-local modelSavePath = os.date("rnn_%Y-%m-%d-%X.bin")
 
 logger:info(model)
 logger:info("Epochs: " .. epochs)
 logger:info("Learning Rate: " .. learningRate)
 logger:info("Accuracy after epochs: " .. accuracyAfterEpochs)
-if modelSavePath then
-	logger:info("Model Save Path: " .. modelSavePath)
-end
 
 -- Stochastic Gradient Descent
 local sgd = SGD(model, criterion, epochs, learningRate, trainInputs, trainTargets, validationInputs, validationTargets, accuracyAfterEpochs)
 sgd:train()
 
+local modelSavePath = os.date("rnn_%Y-%m-%d-%X.bin")
 if modelSavePath then
+	logger:info("Model Save Path: " .. modelSavePath)
 	torch.save(modelSavePath, model)
 end
