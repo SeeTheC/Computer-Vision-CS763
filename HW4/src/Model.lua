@@ -4,6 +4,7 @@ local Model = torch.class("Model")
 
 function Model:__init()
 	self.layers = {}
+	self.nLayers = 0
 	self.train = false
 end
 
@@ -15,6 +16,7 @@ end
 
 function Model:add(layer)
 	table.insert(self.layers, layer)
+	self.nLayers = self.nLayers + 1
 end
 
 function Model:forward(input)
@@ -49,8 +51,8 @@ end
 function Model:__tostring__()
 	local string = "Model\n"
 	string = string .. "[\n"
-	for i = 1, #self.Layers do
-		string = string .. "\t" .. string.format("(%d) -->\t%s", i, self.Layers[i]) .. "\n"
+	for i = 1, #self.layers do
+		string = string .. "\t" .. string.format("(%d) -->\t%s", i, self.layers[i]) .. "\n"
 	end
 	string = string .. "]"
 	return string

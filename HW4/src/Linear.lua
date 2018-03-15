@@ -5,10 +5,12 @@ local Linear = torch.class("Linear")
 function Linear:__init(fan_in, fan_out)
 	logger:debug("Initializing Linear Layer")
 
+	self.fan_in = fan_in
+	self.fan_out = fan_out
 	-- Xavier Initialization
-	local stdv = math.sqrt(2 / (fan_in + fan_out))
-	self.W = torch.Tensor(fan_out, fan_in):uniform(-stdv, stdv)
-	self.B = torch.Tensor(fan_out):uniform(-stdv, stdv)
+	local stdv = math.sqrt(2 / (self.fan_in + self.fan_out))
+	self.W = torch.Tensor(self.fan_out, self.fan_in):uniform(-stdv, stdv)
+	self.B = torch.Tensor(self.fan_out):uniform(-stdv, stdv)
 
 	self:resetGradsAndOutputs()
 end
@@ -38,5 +40,5 @@ function Linear:updateParameters(learningRate)
 end
 
 function Linear:__tostring__()
-	return torch.type(self) .. string.format(': (%d -> %d)', self.n_input, self.n_output) .. " with bias"
+	return torch.type(self) .. string.format(': (%d -> %d)', self.fan_in, self.fan_out) .. " with bias"
 end
