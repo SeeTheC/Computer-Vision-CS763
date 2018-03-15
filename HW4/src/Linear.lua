@@ -10,6 +10,10 @@ function Linear:__init(fan_in, fan_out)
 	self.W = torch.Tensor(fan_out, fan_in):uniform(-stdv, stdv)
 	self.B = torch.Tensor(fan_out):uniform(-stdv, stdv)
 
+	self:resetGradsAndOutputs()
+end
+
+function Linear:resetGradsAndOutputs()
 	self.output = torch.Tensor()
 	self.gradW = torch.Tensor()
 	self.gradB = torch.Tensor()
@@ -21,7 +25,7 @@ function Linear:forward(input)
 	return self.output
 end
 
-function Linear:backward(input, gradOutput, scale)
+function Linear:backward(input, gradOutput)
 	self.gradInput = self.W:t() * gradOutput
 	self.gradW = gradOutput * input:t()
 	self.gradB = gradOutput
@@ -31,4 +35,8 @@ end
 function Linear:updateParameters(learningRate)
 	self.W = self.W - learningRate * self.gradW
 	self.B = self.B - learningRate * self.gradB
+end
+
+function Linear:__tostring__()
+	return torch.type(self) .. string.format(': (%d -> %d)', self.n_input, self.n_output) .. " with bias"
 end
