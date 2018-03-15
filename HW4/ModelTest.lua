@@ -22,19 +22,37 @@ local validationInputs = {unpack(inputs, trainRatio * #inputs + 1, #inputs)}
 local validationTargets = {unpack(targets, trainRatio * #targets + 1, #targets)}
 
 -- Defining the model
-local model = Model()
-local rnn = RNN(153, 32)
-local batchnorm = BatchNormalization()
-local linear = Linear(32, 2)
-model:add(rnn)
-model:add(batchnorm)
-model:add(linear)
+local modelLoadPath = nil -- "rnn_2018-03-16-03:17:14.bin"
+local model
+if modelLoadPath then
+	logger:info("Load Model Path: " .. modelLoadPath)
+	model = torch.load(modelLoadPath)
+else
+	model = Model()
+	model:add(RNN(153, 512))
+	model:add(BatchNormalization())
+	model:add(Linear(512, 2))
+end
 
 local criterion = Criterion()
 
-local epochs = 5e3
-local learningRate = 1e-3
-local accuracyAfterEpochs = 100
+local epochs = 1e3
+local learningRate = 1e-5
+local accuracyAfterEpochs = 1e2
+local modelSavePath = os.date("rnn_%Y-%m-%d-%X.bin")
 
+logger:info(model)
+logger:info("Epochs: " .. epochs)
+logger:info("Learning Rate: " .. learningRate)
+logger:info("Accuracy after epochs: " .. accuracyAfterEpochs)
+if modelSavePath then
+	logger:info("Model Save Path: " .. modelSavePath)
+end
+
+-- Stochastic Gradient Descent
 local sgd = SGD(model, criterion, epochs, learningRate, trainInputs, trainTargets, validationInputs, validationTargets, accuracyAfterEpochs)
 sgd:train()
+
+if modelSavePath then
+	torch.save(modelSavePath, model)
+end
