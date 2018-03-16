@@ -22,42 +22,50 @@ local validationInputs = {unpack(inputs, trainRatio * #inputs + 1, #inputs)}
 local validationTargets = {unpack(targets, trainRatio * #targets + 1, #targets)}
 
 -- Defining the model
-local modelLoadPath = "rnn_2018-03-16-03:19:43.bin"
+local rnnHiddenDimension = 512
+local inputDimension = 153
+local outputDimension = 2
+local modelLoadPath = "rnn_2018-03-16-17:59:30.bin"
+
 local model
 if modelLoadPath then
 	logger:info("Load Model Path: " .. modelLoadPath)
 	model = torch.load(modelLoadPath)
 else
 	model = Model()
-	model:add(RNN(153, 512))
+	model.H = rnnHiddenDimension
+	model.V = inputDimension
+	model:add(RNN(inputDimension, rnnHiddenDimension))
 	model:add(BatchNormalization())
-	model:add(Linear(512, 2))
+	model:add(Linear(inputDimension, outputDimension))
 end
 
 local criterion = Criterion()
 
 local epochs = 2000
-local learningRate = 1e-4
+local learningRate = 1e-2
 local accuracyAfterEpochs = 100
 local saveModelAfterEpochs = 1000
-local saveModelPathPrefix = os.date("rnn_%Y-%m-%d-%X")
+local saveModelPathPrefix = os.date("rnn_%Y-%m-%d-%X" .. rnnHiddenDimension)
 
 logger:info(model)
 logger:info("Epochs: " .. epochs)
 logger:info("Learning Rate: " .. learningRate)
 logger:info("Accuracy after epochs: " .. accuracyAfterEpochs)
+logger:info("Save model after epochs: " .. saveModelAfterEpochs)
+logger:info("Save model path prefix: " .. saveModelPathPrefix)
 
 -- Stochastic Gradient Descent
 local sgd = SGD(model,
-								criterion,
-								epochs,
-								learningRate,
-								trainInputs,
-								trainTargets,
-								validationInputs,
-								validationTargets,
-								accuracyAfterEpochs,
-								saveModelAfterEpochs,
-								saveModelPathPrefix
-						)
+                criterion,
+                epochs,
+                learningRate,
+                trainInputs,
+                trainTargets,
+                validationInputs,
+                validationTargets,
+                accuracyAfterEpochs,
+                saveModelAfterEpochs,
+                saveModelPathPrefix
+               )
 sgd:train()
