@@ -14,7 +14,7 @@ function RNN:__init(inputDimension, hiddenDimension)
 	self.W = torch.Tensor(self.fan_in, self.fan_out):uniform(-stdv, stdv)
 	self.B = torch.Tensor(self.fan_out, 1):uniform(-stdv, stdv)
 
-	self.gradientClipThreshold = 1e3
+	self.gradientClipThreshold = 1e2
 
 	self:resetGradsAndOutputs()
 end
@@ -48,7 +48,7 @@ function RNN:backward(input, gradOutput)
 		local gradW = torch.cat(self._hiddenOutput[i - 1], input:select(2, i), 1) * derivativeOfTanh:t()
 		local gradWNorm = torch.sum(torch.pow(gradW, 2))
 		if gradWNorm > self.gradientClipThreshold then
-			logger:info("Norm of gradient of W went above the threshold: " .. gradWNorm)
+			logger:warn("Norm of gradient of W went above the threshold: " .. gradWNorm)
 			gradW = gradW * (self.gradientClipThreshold / gradWNorm)
 		end
 		self.gradW = self.gradW + gradW
@@ -66,5 +66,5 @@ function RNN:updateParameters(learningRate)
 end
 
 function RNN:__tostring__()
-	return torch.type(self) .. string.format(': Hidden Dimension = %d and Input Dimension =  %d', self.hiddenDimension, self.inputDimension)
+	return torch.type(self) .. string.format(': Hidden Dimension = %d | Input Dimension = %d', self.hiddenDimension, self.inputDimension)
 end
