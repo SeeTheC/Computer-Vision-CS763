@@ -5,17 +5,33 @@ require "src.RNN"
 require "src.BatchNormalization"
 require "src.Linear"
 
--- Load and processing data
-local inputMappings, countInput = loadMappings("dataset/input_mappings")
-local outputMappings, countOutput = loadMappings("dataset/output_mappings")
-local inputs = oneHotEncode("dataset/test/test_data.txt", inputMappings, countInput)
+local cmd = torch.CmdLine()
+cmd:text()
+cmd:text("Options:")
+cmd:option("-modelName", "", "/path/to/model")
+cmd:option("-data", "", "/path/to/input")
+cmd:text()
+opt = cmd:parse(arg or {})
 
-local modelLoadPath = "rnn_2018-03-16-17:59:30.bin"
+local modelName = opt["modelName"]
+local inputFileName = opt["data"]
+
+if modelName == "" or inputFileName == "" then
+	cmd:help()
+	os.exit()
+end
+
+-- Load and processing data
+local inputMappings, countInput = loadMappings("src/input_mappings")
+local outputMappings, countOutput = loadMappings("src/output_mappings")
+local inputs = oneHotEncode(inputFileName, inputMappings, countInput)
+
+local modelLoadPath = modelName .. "/model.bin"
 
 if modelLoadPath then
-	logger:debug("Load Model Path: " .. modelLoadPath)
+	logger:info("Load Model Path: " .. modelLoadPath)
 	model = torch.load(modelLoadPath)
-	local predictedOutputsFileName = modelLoadPath .. "_predictions.csv"
+	local predictedOutputsFileName = "testPredictions.csv"
 	predictedOutputsFile = io.open(predictedOutputsFileName, "w")
 	predictedOutputsFile:write("id,label\n")
 	for i = 1, #inputs do

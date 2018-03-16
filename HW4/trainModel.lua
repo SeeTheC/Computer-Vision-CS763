@@ -7,11 +7,34 @@ require "src.Linear"
 require "src.Criterion"
 require "src.SGD"
 
+local cmd = torch.CmdLine()
+cmd:text()
+cmd:text("Options:")
+cmd:option("-modelName", "", "/path/to/model")
+cmd:option("-rnnSize", 512, "Size of Hidden Layer")
+cmd:option("-data", "", "/path/to/input")
+cmd:option("-target", "", "/path/to/target")
+cmd:text()
+opt = cmd:parse(arg or {})
+
+local modelName = opt["modelName"]
+local rnnHiddenDimension = tonumber(opt["rnnSize"])
+local inputFileName = opt["data"]
+local targetFileName = opt["target"]
+
+if modelName == "" then
+	modelName = os.date("rnn_%Y-%m-%d-%X_" .. rnnHiddenDimension .. "/")
+end
+if inputFileName == "" or targetFileName == "" then
+	cmd:help()
+	os.exit()
+end
+
 -- Load and processing data
-local inputMappings, countInput = loadMappings("dataset/input_mappings")
-local outputMappings, countOutput = loadMappings("dataset/output_mappings")
-local inputs = oneHotEncode("dataset/train/train_data.txt", inputMappings, countInput)
-local targets = oneHotEncode("dataset/train/train_labels.txt", outputMappings, countOutput)
+local inputMappings, countInput = loadMappings("src/input_mappings")
+local outputMappings, countOutput = loadMappings("src/output_mappings")
+local inputs = oneHotEncode(inputFileName, inputMappings, countInput)
+local targets = oneHotEncode(targetFileName, outputMappings, countOutput)
 
 local trainRatio = 0.8
 local validationRatio = 1 - trainRatio
@@ -22,10 +45,16 @@ local validationInputs = {unpack(inputs, trainRatio * #inputs + 1, #inputs)}
 local validationTargets = {unpack(targets, trainRatio * #targets + 1, #targets)}
 
 -- Defining the model
-local rnnHiddenDimension = 512
-local inputDimension = 153
-local outputDimension = 2
-local modelLoadPath = "rnn_2018-03-16-17:59:30.bin"
+-- local rnnHiddenDimension = 512
+local inputDimension = countInput
+local outputDimension = countOutput
+local modelLoadPath = nil
+if paths.dir(modelName) == nil then
+	paths.mkdir(modelName)
+else
+	modelLoadPath = modelName .. "model.bin"
+end
+logger:setLogFilePrefix(modelName)
 
 local model
 if modelLoadPath then
@@ -37,16 +66,16 @@ else
 	model.V = inputDimension
 	model:add(RNN(inputDimension, rnnHiddenDimension))
 	model:add(BatchNormalization())
-	model:add(Linear(inputDimension, outputDimension))
+	model:add(Linear(rnnHiddenDimension, outputDimension))
 end
 
 local criterion = Criterion()
 
 local epochs = 2000
 local learningRate = 1e-2
-local accuracyAfterEpochs = 100
+local accuracyAfterEpochs = 500
 local saveModelAfterEpochs = 1000
-local saveModelPathPrefix = os.date("rnn_%Y-%m-%d-%X" .. rnnHiddenDimension)
+local saveModelPathPrefix = modelName
 
 logger:info(model)
 logger:info("Epochs: " .. epochs)
