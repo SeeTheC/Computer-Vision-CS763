@@ -24,6 +24,8 @@ local targetFileName = opt["target"]
 
 if modelName == "" then
 	modelName = os.date("rnn_%Y-%m-%d-%X_" .. rnnHiddenDimension .. "/")
+else
+	modelName = modelName .. "/"
 end
 if inputFileName == "" or targetFileName == "" then
 	cmd:help()
@@ -71,9 +73,9 @@ end
 
 local criterion = Criterion()
 
-local epochs = 2000
-local learningRate = 1e-2
-local accuracyAfterEpochs = 500
+local epochs = 5000
+local learningRate = 1e-3
+local accuracyAfterEpochs = 250
 local saveModelAfterEpochs = 1000
 local saveModelPathPrefix = modelName
 
