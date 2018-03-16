@@ -2,7 +2,7 @@ require "src.Logger"
 
 local SGD = torch.class("SGD")
 
-function SGD:__init(model, criterion, epochs, learningRate, trainInputs, trainTargets, validationInputs, validationTargets, predictAfterEpochs, saveModelAfterEpochs, saveModelPathPrefix)
+function SGD:__init(model, criterion, epochs, learningRate, trainInputs, trainTargets, validationInputs, validationTargets, accuracyAfterEpochs, saveModelAfterEpochs, saveModelPathPrefix)
 	self.model = model
 	self.criterion = criterion
 	self.epochs = epochs
@@ -11,8 +11,8 @@ function SGD:__init(model, criterion, epochs, learningRate, trainInputs, trainTa
 	self.trainTargets = trainTargets
 	self.validationInputs = validationInputs
 	self.validationTargets = validationTargets
-	self.accuracyAfterEpochs = predictAfterEpochs or 100
-	self.saveModelAfterEpochs = saveModelAfterEpochs or self.epochs
+	self.accuracyAfterEpochs = accuracyAfterEpochs or 100
+	self.saveModelAfterEpochs = (saveModelAfterEpochs ~= nil or saveModelAfterEpochs <= self.epochs) and saveModelAfterEpochs or self.epochs
 	self.saveModelPathPrefix = saveModelPathPrefix or os.date("rnn_%Y-%m-%d-%X")
 end
 
@@ -33,7 +33,7 @@ function SGD:train()
 		end
 
 		if epoch % self.saveModelAfterEpochs == 0 then
-			local modelSavePath = self.saveModelPathPrefix .. "_" .. epochs .. ".bin"
+			local modelSavePath = self.saveModelPathPrefix .. "_" .. epoch .. ".bin"
 			logger:info("Model Save Path: " .. modelSavePath)
 			torch.save(modelSavePath, model)
 		end
