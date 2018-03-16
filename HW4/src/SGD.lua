@@ -35,7 +35,7 @@ function SGD:train()
 		if epoch % self.saveModelAfterEpochs == 0 then
 			local modelSavePath = self.saveModelPathPrefix .. "_" .. epoch .. ".bin"
 			logger:info("Model Save Path: " .. modelSavePath)
-			torch.save(modelSavePath, model)
+			torch.save(modelSavePath, self.model)
 		end
 	end
 	logger:debug("SGD completed " .. self.epochs .. " epochs")
