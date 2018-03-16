@@ -6,22 +6,27 @@ WARN = 30
 ERROR = 40
 DISABLE = 100
 
-function Logger:__init(logging_level, log_to_file)
+function Logger:__init(logging_level, log_to_file, log_file_prefix)
 	self.logging_level = logging_level or DISABLE
+
+	self:printLoggingLevel()
 
 	self.log_to_file = (log_to_file == nil or log_to_file == true) and true or false
 	if self.log_to_file then
-		self.log_file_name = os.date("%Y-%m-%d-%X.log")
+		self.log_file_name = (log_file_prefix or "") .. os.date("%Y-%m-%d-%X.log")
 		print("Logging to file " .. self.log_file_name)
 	end
-
-	self:printLoggingLevel()
 end
 
 -- Changes the log level at run time
 function Logger:setLevel(logging_level)
 	self.logging_level = logging_level or DISABLE
 	self:printLoggingLevel()
+end
+
+function Logger:setLogFilePrefix(log_file_prefix)
+	self.log_file_name = log_file_prefix .. self.log_file_name
+	print("Log file changed to " .. self.log_file_name)
 end
 
 function Logger:printLoggingLevel()
