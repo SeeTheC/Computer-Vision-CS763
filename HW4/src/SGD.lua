@@ -33,9 +33,11 @@ function SGD:train()
 		end
 
 		if epoch % self.saveModelAfterEpochs == 0 then
-			local modelSavePath = self.saveModelPathPrefix .. "_" .. epoch .. ".bin"
+			local modelSavePath = self.saveModelPathPrefix .. "model_" .. epoch .. ".bin"
 			logger:info("Model Save Path: " .. modelSavePath)
 			torch.save(modelSavePath, self.model)
+			-- Create a copy of the model so that it can be used at test time with a uniform name
+			torch.save(self.saveModelPathPrefix .. "model.bin")
 		end
 	end
 	logger:debug("SGD completed " .. self.epochs .. " epochs")
