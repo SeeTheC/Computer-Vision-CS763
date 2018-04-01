@@ -122,57 +122,48 @@ end
 function train()
 	local input = torch.load("../dataset/Train/data.bin"):double()
 	local target = torch.load("../dataset/Train/labels.bin"):double()
-	target = target + 1
+	local target_onehot = torch.zeros(target:size(1), 6)
+	for i = 1, target:size(1) do
+		target_onehot[i][target[i] + 1] = 1
+	end
 
 	input = input / 255
 	local mean = torch.mean(input, 1)
-	local stddev = torch.std(input, 1)
+	-- local stddev = torch.std(input, 1)
 
 	for i = 1, input:size(1) do
 		input[i] = input[i] - mean
 	end
 
-	local mlp
-
+	local mlp;
 	local model = ""
 	if model == "" then
 		mlp = Model()
-		mlp:addLayer(SpatialConvolution(1, 2, 99, 99))
-		-- mlp:addLayer(BatchNormalization())
+		mlp:addLayer(Linear(11664, 10))
+		mlp:addLayer(BatchNormalization())
 		-- mlp:addLayer(ReLU())
-		-- mlp:addLayer(SpatialConvolution(2, 2, 30, 30))
-		-- mlp:addLayer(BatchNormalization())
-		-- mlp:addLayer(ReLU())
-		-- mlp:addLayer(Linear(5000, 10))
-		-- mlp:addLayer(BatchNormalization())
-		-- mlp:addLayer(ReLU())
-		mlp:addLayer(Linear(200, 6))
+		mlp:addLayer(Linear(10, 6))
 	else
 		mlp = torch.load(model)
 		logger:info("Model loaded from file " .. model)
 	end
 
 	local learningRate = 1e-5
-	local maxIterations = 200
+	local maxIterations = 10
 	local batchSize = 100
-
 	local criterion = Criterion()
-	local testData = torch.load("../dataset/Test/test.bin"):double()
-
 	logger:info(mlp)
 	logger:info("Learning Rate = " .. learningRate)
 	logger:info("Iterations = " .. maxIterations)
 	logger:info("Batch Size = " .. batchSize)
-
 	-- local x = mlp:forward(input:narrow(1, 1, 2))
 	-- local loss = criterion:forward(x, target:narrow(1, 1, 2))
 	-- local y = criterion:backward(x, target:narrow(1, 1, 2))
 	-- mlp:backward(input:narrow(1, 1, 2), y)
-
 	-- print(loss)
 
 	local trainer = GradientDescent(mlp, criterion, learningRate, maxIterations)
-	trainer:train(input, target, batchSize)
+	trainer:train(input, target_onehot, batchSize)
 
 	local saveModel = {}
 	table.insert(saveModel,mlp);
@@ -182,7 +173,7 @@ function train()
   
 	local filename = os.date("MLP_%Y-%m-%d-%X.bin")
 	logger:info("Saving the model as ".. filename)
-	torch.save(filename, saveModel)
+	torch.save(filename, mlp)
 	predict(filename)
 end
 

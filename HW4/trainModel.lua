@@ -11,7 +11,7 @@ local cmd = torch.CmdLine()
 cmd:text()
 cmd:text("Options:")
 cmd:option("-modelName", "", "/path/to/model")
-cmd:option("-rnnSize", 512, "Size of Hidden Layer")
+cmd:option("-rnnSize", 103, "Size of Hidden Layer")
 cmd:option("-data", "", "/path/to/input")
 cmd:option("-target", "", "/path/to/target")
 cmd:text()
@@ -74,7 +74,7 @@ end
 local criterion = Criterion()
 
 local epochs = 5000
-local learningRate = 1e-3
+local learningRate = 1e-2
 local accuracyAfterEpochs = 250
 local saveModelAfterEpochs = 1000
 local saveModelPathPrefix = modelName

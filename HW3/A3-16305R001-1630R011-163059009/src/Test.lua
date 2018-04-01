@@ -119,8 +119,8 @@ function predict(model)
 end
 
 function train()
-	local input = torch.load("../dataset/Train/data.bin"):double()
-	local target = torch.load("../dataset/Train/labels.bin"):double()
+	local input = torch.load("../../dataset/Train/data.bin"):double()
+	local target = torch.load("../../dataset/Train/labels.bin"):double()
 	target = target + 1
 
 	input = input / 255
@@ -136,10 +136,7 @@ function train()
 	local model = ""
 	if model == "" then
 		mlp = Model()
-		mlp:addLayer(Linear(11664, 50))
-		mlp:addLayer(BatchNormalization())
-		mlp:addLayer(ReLU())
-		mlp:addLayer(Linear(50, 10))
+		mlp:addLayer(Linear(11664, 10))
 		mlp:addLayer(BatchNormalization())
 		mlp:addLayer(ReLU())
 		mlp:addLayer(Linear(10, 6))
@@ -149,7 +146,7 @@ function train()
 	end
 
 	local learningRate = 1.5
-	local maxIterations = 6000
+	local maxIterations = 300
 	local batchSize = 250
 
 	local criterion = Criterion()
@@ -162,13 +159,18 @@ function train()
 	local trainer = GradientDescent(mlp, criterion, learningRate, maxIterations)
 	trainer:train(input, target, batchSize)
 
+	local saveModel = {}
+	table.insert(saveModel,mlp);
+	table.insert(saveModel,criterion);
+	table.insert(saveModel,learningRate);
+	table.insert(saveModel,maxIterations);
+
 	local filename = os.date("MLP_%Y-%m-%d-%X.bin")
 	logger:info("Saving the model as ".. filename)
-	torch.save(filename, mlp)
-	predict(filename)
+	torch.save(filename, saveModel)
 end
 
 -- model1()
--- model2()
--- train()
-predict("MLP_2018-02-21-10:38:25.bin")
+-- model2() 
+train()
+--predict("MLP_2018-02-21-10:38:25.bin")

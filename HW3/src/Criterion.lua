@@ -23,12 +23,12 @@ end
 function Criterion:forward(input, target)
 	local output = torch.log(self:softmax(input))
 	if input:nDimension() == 1 then
-		self.output = -output[target[1]]
+		self.output = -1 * torch.cmul(target, output)
 		return self.output
 	end
 
 	for i = 1, input:size(1) do
-		self.output = self.output - output[i][target[i]]
+		self.output = -1 * torch.sum(torch.cmul(target, output))
 	end
 	self.output = self.output / input:size(1)
 	return self.output
@@ -37,12 +37,12 @@ end
 function Criterion:backward(input, target)
 	local gradInput = self:softmax(input)
 	if input:nDimension() == 1 then
-		gradInput[target[1]] = gradInput[target[1]] - 1
+		gradInput[target[1]] = gradInput - target[1]
 		return gradInput
 	end
 
 	for i = 1, input:size(1) do
-		gradInput[i][target[i]] = gradInput[i][target[i]] - 1
+		gradInput[i] = gradInput[i] - target[i]
 	end
 	return gradInput / input:size(1)
 end

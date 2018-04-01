@@ -1,0 +1,9 @@
+function [ filterPoints ] = filterPtMovingArea(pt,movingArea)
+       n=size(pt,2);
+       x1=movingArea
+       for i=1:n
+           if
+       end
+    
+end
+
