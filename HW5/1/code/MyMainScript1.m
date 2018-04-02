@@ -58,7 +58,7 @@ impixelinfo;
 %% 4. Part. d)
 
 noOfFeatures=size(featureToTrack,1);
-%featureTrajectory=cell(noOfFeatures,1);
+featureTrajectory=cell(noOfFeatures,1);
 tic
 for fNum=1:noOfFeatures
         fprintf('### Feature Point:%d###\n',fNum);
