@@ -13,89 +13,100 @@ for i=1:numOfFrames
         Frames(:,:,i)=imread(['../input/' num2str(i) '.jpg']);
     end
 end
-%% 2. (b) & (c) Display major features points overlay-ed on the first frame, for feature 
-% point detection you can use Harris corner detector or SURF; 
-% both are inbuilt in MATLAB.
-% parameter N for max num of features
 
-N=50;
-%C=zeros(N,2);
-[r,c]=size(Frames(:,:,1));
-img = Frames(:,:,1);
-C = corner(img,N);
-%C=detectHarrisFeatures(img);
-windowSize=7;
-sigma=1.3;
-blurSigma=0.01;
-k=0.16;
 %% 2. Part.b) Finding and Ploting all Feature point using Haris corner dectector
-img = Frames(:,:,1);
+N=80;img = Frames(:,:,1);
 [H,W]=size(img);
-C = corner(img,N);
-C=[C(:,2),C(:,1)];
+features = corner(img,N);
+features=[features(:,2),features(:,1)];
+
 % Plotting
 figure('name','Corners for First Frame');
 imshow(img,[]);
 hold on
-%plot(C(49,1),C(49,2),'r*');
-%plot(goodFeaturePoint(49,1),goodFeaturePoint(49,2),'r*');
-plot(C(:,2),C(:,1),'m*');
-
-title('\fontsize{10}{\color{magenta}Corners for First Frame}');
+plot(features(:,2),features(:,1),'r*');
+title('\fontsize{10}{\color{red}All Haris Features for First Frame}');
 axis tight,axis on;
-o1 = get(gca, 'Position');
-colorbar(),set(gca, 'Position', o1);
+
+%% 3. Part.c) Finding Good Feature Point
+% Patch size: 41
+% Moving Area: Where moving features are present
+% thershold: min eigen value thershold for finding good features
+% featureToTrackIdx: Index of features which we will be tracking
+
+patchSize=41;thershold=5e5;movingArea=[1,480,1,268];
+
+[goodFeaturePoint] = getGoodFeaturePoints(img,features,patchSize,thershold);
+goodFeaturePoint= filterPtMovingArea(goodFeaturePoint,movingArea);
+%% Feature to track
+%featureToTrackIdx=[9,5,13];
+featureToTrackIdx=[8,15,30];
+featureToTrack=goodFeaturePoint(featureToTrackIdx,:);
+%% 3.1 Plotting: Good Features + Feature to Track
+% Pink: Good Features
+% Green: Feature to track
+
+figure('name','Corners for First Frame');
+imshow(img,[]);
+hold on
+plot(goodFeaturePoint(:,2),goodFeaturePoint(:,1),'m*');
+plot(featureToTrack(:,2),featureToTrack(:,1),'g*');
+title('\fontsize{10}{\color{magenta}Good Feature (Pink), \color{green}Feature to Track(Green) \color{black}for First Frame}');
 saveas(gcf,strcat('../output/',num2str(1),'.jpg'));
 impixelinfo;
-%% 3. Part.c) Finding Good Feature Point
-patchSize=41;thershold=5e5;
-[goodFeaturePoint] = getGoodFeaturePoints(img,C,patchSize,thershold);
-goodFeaturePoint= filterPtMovingArea(goodFeaturePoint,[1,480,1,268]);
 
-%%
-k=[15:20];
-% Plotting
-figure('name','Corners for First Frame');
-imshow(img,[]);
-hold on
-plot(goodFeaturePoint(k,2),goodFeaturePoint(k,1),'m*');
-
-title('\fontsize{10}{\color{magenta}Corners for First Frame}');
-axis tight,axis on;
-o1 = get(gca, 'Position');
-colorbar(),set(gca, 'Position', o1);
-impixelinfo;
 %% 4. Part. d)
-patchSize=41;
-numOfFrames=10;% Fo testing
 
-frameNumFromRef=1;%used to change the reference frame every 8th frame
-currentRefFrameNum=1;
-newCorners=zeros(numOfFrames,N,2);
-newCorners(1,:,:)=C;
-%for cornerNum=49:49
-        %fpt=[C(cornerNum,2),C(cornerNum,1)];        
-        %fprintf('###Corner Point:%d###',cornerNum);
-        fpt=[304,165];
-        fpt=[goodFeaturePoint(13,1),goodFeaturePoint(13,2)];                        
-        [outputCoord]=KLT(fpt,patchSize,Frames);          
-%end
+noOfFeatures=size(featureToTrack,1);
+%featureTrajectory=cell(noOfFeatures,1);
+tic
+for fNum=1:noOfFeatures
+        fprintf('### Feature Point:%d###\n',fNum);
+        % fpt=[304,165]; % test feature point
+        fpt=[featureToTrack(fNum,1),featureToTrack(fNum,2)];                        
+        [outputCoord]=KLTSinglePointTracking(fpt,patchSize,Frames); 
+        featureTrajectory{fNum}=outputCoord;
+end
+toc
+fprintf('Tracking Completed..\n');
 
 %% Save all the trajectories frame by frame
-noOfPoints = 1;
-for i=1:20
+color={'g*','m*','y*'};
+for i=1:247
     if i==60 % frame doesnot exits
         continue;
     end        
-    NextFrame = Frames(:,:,i);
-    imshow(uint8(NextFrame),[]); hold on;
-    for j = 1:i
-        plot(outputCoord(j,2), outputCoord(j,1),'m*')
+    frame = Frames(:,:,i);
+    figure('name',num2str(i));
+    imshow(frame,[]); hold on;
+    for fNum=1:noOfFeatures
+        outputCoord=featureTrajectory{fNum};
+        for j = 1:i
+            plot(outputCoord(j,2), outputCoord(j,1),color{fNum});
+        end
     end
     hold off;
     saveas(gcf,strcat('../output/trajectory/',num2str(i),'.jpg'));
-    close all;
-    noOfPoints = noOfPoints + 1;
+    close all;    
 end 
-   
+%% Drawing Trajectories
+color={'g','y','m'};
+for i=1:247
+    if i==60 % frame doesnot exits
+        continue;
+    end        
+    frame = Frames(:,:,i);
+    frame=frame-min(frame(:));frame=frame/max(frame(:));     
+    for fNum=1:noOfFeatures
+        if fNum==2
+            continue;
+        end
+        outputCoord=featureTrajectory{fNum};
+        for j = 1:i       
+            frame=drawMarker(frame,outputCoord(j,:),'x',2,color{fNum},3);
+            %frame = insertMarker(frame,[outputCoord(j,2),outputCoord(j,1)],'x','color',color{fNum},'size',3);
+        end
+    end
+    imwrite(frame,strcat('../output/trajectory/',num2str(i),'.jpg'));
+end 
 

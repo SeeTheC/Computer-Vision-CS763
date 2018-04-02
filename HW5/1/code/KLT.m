@@ -1,7 +1,7 @@
 function [ outputCoord ] = KLT(fpt,patchSize,Frames)
     %% INIT
     
-    numOfFrames=20;    
+    numOfFrames=100;    
     maxConvgIter=100;   
     minDeltaPNorm=0.05;
     epsilon=3e-4;
@@ -18,7 +18,7 @@ function [ outputCoord ] = KLT(fpt,patchSize,Frames)
     
     prvFrameIndx=1;
     outputCoord(prvFrameIndx,:)=fpt;
-    DisplaySinglePoint(Frames(:,:,prvFrameIndx),fpt,'1');   
+    DisplaySinglePoint(Frames(:,:,prvFrameIndx),fpt,'1');       
     for i=2:numOfFrames%numOfFrames
         if i==60 % frame doesnot exits
             continue;
