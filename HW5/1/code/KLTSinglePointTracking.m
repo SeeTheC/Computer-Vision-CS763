@@ -57,12 +57,11 @@ function [ outputCoord ] = KLTSinglePointTracking(fpt,patchSize,Frames)
             %% Checking for convergence
             error=rmse(imgWarped,template);   
             change=oldError-error;
-            fprintf('%d) error=%f\tchangeInP=%f \n',lcount,error,norm(changeInP));            
+            %fprintf('%d) error=%f\tchangeInP=%f \n',lcount,error,norm(changeInP));            
             
             if (error>oldError) 
                 if change>0.5
-                    fprintf('****Break:  error > oldError*****\n');
-                    %break;     
+                    %fprintf('Note: Change is less in the 0.5\n');                     
                 end
             else
                 oldError=error;
@@ -90,7 +89,7 @@ function [ outputCoord ] = KLTSinglePointTracking(fpt,patchSize,Frames)
         fpt=round(W*[0,0,1]')';
         outputCoord(i,:)=fpt;
         prvFrameIndx=i;
-        DisplaySinglePoint(Frames(:,:,i),fpt,num2str(i));        
+        %DisplaySinglePoint(Frames(:,:,i),fpt,num2str(i));        
     end
 
 end

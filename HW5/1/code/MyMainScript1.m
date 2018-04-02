@@ -79,6 +79,11 @@ for i=1:247
     frame = Frames(:,:,i);
     figure('name',num2str(i));
     imshow(frame,[]); hold on;
+    for fNum=1:noOfFeatures    
+        outputCoord=featureTrajectory{fNum};
+        plot(outputCoord(i,2), outputCoord(i,1),color{fNum});
+    end
+    saveas(gcf,strcat('../output/feature-point-tracking/',num2str(i),'.jpg'));        
     for fNum=1:noOfFeatures
         outputCoord=featureTrajectory{fNum};
         for j = 1:i
@@ -86,8 +91,9 @@ for i=1:247
         end
     end
     hold off;
-    saveas(gcf,strcat('../output/trajectory/',num2str(i),'.jpg'));
-    close all;    
+    saveas(gcf,strcat('../output/feature-point-trajectory/',num2str(i),'.jpg'));
+    close all;
+        
 end 
 %% Drawing Trajectories
 color={'g','y','m'};
@@ -96,17 +102,19 @@ for i=1:247
         continue;
     end        
     frame = Frames(:,:,i);
-    frame=frame-min(frame(:));frame=frame/max(frame(:));     
-    for fNum=1:noOfFeatures
-        if fNum==2
-            continue;
-        end
-        outputCoord=featureTrajectory{fNum};
+    frame=frame-min(frame(:));frame=frame/max(frame(:));   
+    img1=frame;
+    img2=frame;
+    fprintf('---Drawing Marker on Frame:%d\n',i);
+    for fNum=1:noOfFeatures       
+        outputCoord=featureTrajectory{fNum};        
         for j = 1:i       
-            frame=drawMarker(frame,outputCoord(j,:),'x',2,color{fNum},3);
+            img1=drawMarker(img1,outputCoord(j,:),'x',2,color{fNum},3);
             %frame = insertMarker(frame,[outputCoord(j,2),outputCoord(j,1)],'x','color',color{fNum},'size',3);
         end
-    end
-    imwrite(frame,strcat('../output/trajectory/',num2str(i),'.jpg'));
+        img2=drawMarker(img2,outputCoord(i,:),'x',2,color{fNum},3);          
+    end    
+    imwrite(img1,strcat('../output/feature-point-trajectory/',num2str(i),'.jpg'));
+    imwrite(img2,strcat('../output/feature-point-tracking/',num2str(i),'.jpg'));
 end 
 

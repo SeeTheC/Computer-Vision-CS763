@@ -38,9 +38,9 @@ patchSize=41;thershold=5e5;movingArea=[1,480,1,268];
 
 [goodFeaturePoint] = getGoodFeaturePoints(img,features,patchSize,thershold);
 goodFeaturePoint= filterPtMovingArea(goodFeaturePoint,movingArea);
-% Feature to track
+%% Feature to track
 %featureToTrackIdx=[9,5,13];
-featureToTrackIdx=[8,19,30];
+featureToTrackIdx=[8,15,30];
 featureToTrack=goodFeaturePoint(featureToTrackIdx,:);
 %% 3.1 Plotting: Good Features + Feature to Track
 % Pink: Good Features
@@ -58,9 +58,9 @@ impixelinfo;
 %% 4. Part. d)
 
 noOfFeatures=size(featureToTrack,1);
-%featureTrajectory=cell(noOfFeatures,1);
+featureTrajectory=cell(noOfFeatures,1);
 tic
-for fNum=1:1%noOfFeatures
+for fNum=1:noOfFeatures
         fprintf('### Feature Point:%d###\n',fNum);
         % fpt=[304,165]; % test feature point
         fpt=[featureToTrack(fNum,1),featureToTrack(fNum,2)];                        
@@ -69,43 +69,52 @@ for fNum=1:1%noOfFeatures
 end
 toc
 fprintf('Tracking Completed..\n');
-%%
-featureTrajectoryCopy=featureTrajectory;
-save('featureTrajectory.mat','featureTrajectory');
+
 %% Save all the trajectories frame by frame
-noOfPoints = 1;
-for i=1:20
+color={'g*','m*','y*'};
+for i=1:247
     if i==60 % frame doesnot exits
         continue;
     end        
     frame = Frames(:,:,i);
+    figure('name',num2str(i));
     imshow(frame,[]); hold on;
-    for fNum=1:1
+    for fNum=1:noOfFeatures
+    
+    plot(outputCoord(i,2), outputCoord(i,1),color{fNum});
+    saveas(gcf,strcat('../output/feature-point-tracking/',num2str(i),'.jpg'));    
+    end
+    for fNum=1:noOfFeatures
         outputCoord=featureTrajectory{fNum};
         for j = 1:i
-            plot(outputCoord(j,2), outputCoord(j,1),'m*')
+            plot(outputCoord(j,2), outputCoord(j,1),color{fNum});
         end
     end
     hold off;
-    saveas(gcf,strcat('../output/trajectory/',num2str(i),'.jpg'));
+    saveas(gcf,strcat('../output/feature-point-trajectory/',num2str(i),'.jpg'));
     close all;
-    noOfPoints = noOfPoints + 1;
+        
 end 
 %% Drawing Trajectories
-color={'m','g','y'};
-for i=1:20
+color={'g','y','m'};
+for i=1:247
     if i==60 % frame doesnot exits
         continue;
     end        
     frame = Frames(:,:,i);
-    frame=frame-min(frame(:));frame=frame/max(frame(:));     
-    for fNum=1:noOfFeatures
-        outputCoord=featureTrajectory{fNum};
+    frame=frame-min(frame(:));frame=frame/max(frame(:));   
+    img1=frame;
+    img2=frame;
+    fprintf('---Drawing Marker on Frame:%d\n',i);
+    for fNum=1:noOfFeatures       
+        outputCoord=featureTrajectory{fNum};        
         for j = 1:i       
-            frame=drawMarker(frame,outputCoord(j,:),'x',2,color{fNum},3);
+            img1=drawMarker(img1,outputCoord(j,:),'x',2,color{fNum},3);
             %frame = insertMarker(frame,[outputCoord(j,2),outputCoord(j,1)],'x','color',color{fNum},'size',3);
         end
-    end
-    imwrite(frame,strcat('../output/trajectory/',num2str(i),'.jpg'));
+        img2=drawMarker(img2,outputCoord(i,:),'x',2,color{fNum},3);          
+    end    
+    imwrite(img1,strcat('../output/feature-point-trajectory/',num2str(i),'.jpg'));
+    imwrite(img2,strcat('../output/feature-point-tracking/',num2str(i),'.jpg'));
 end 
 
